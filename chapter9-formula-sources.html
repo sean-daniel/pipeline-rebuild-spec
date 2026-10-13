@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>第9章 · 计算项公式清单</title>
+<script>
+window.MathJax = {
+  tex: {
+    inlineMath: [['\\(','\\)'], ['$','$']],
+    displayMath: [['$$','$$'], ['\\[','\\]']],
+    processEscapes: true
+  },
+  svg: { fontCache: 'global' }
+};
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+<style>
+:root {
+  --accent: #1F4E79;
+  --bg: #f3f5f8;
+  --card: #fff;
+  --ink: #1a1a1a;
+  --muted: #5a6570;
+  --line: #d8dee6;
+  --formula: #f0f5fb;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: "PingFang SC", "Noto Sans SC", "Segoe UI", sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  line-height: 1.65;
+}
+.layout {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 920px);
+  gap: 1.25rem;
+  max-width: 1220px;
+  margin: 0 auto;
+  padding: 1.25rem 1rem 3.5rem;
+}
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; }
+  .toc { position: static !important; max-height: none !important; }
+}
+.toc {
+  position: sticky;
+  top: .75rem;
+  align-self: start;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: .85rem 1rem;
+  max-height: calc(100vh - 1.5rem);
+  overflow: auto;
+  font-size: .82rem;
+}
+.toc h2 { margin: 0 0 .5rem; font-size: .95rem; color: var(--accent); }
+.toc ol { margin: 0; padding-left: 1.1rem; }
+.toc li { margin: .25rem 0; }
+.toc li.l2 { margin-left: .4rem; }
+.toc a { color: #334155; text-decoration: none; }
+.toc a:hover { color: var(--accent); }
+main {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 1.4rem 1.6rem 2.2rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,.04);
+}
+h1 {
+  margin: 0 0 1rem;
+  font-size: 1.55rem;
+  color: var(--accent);
+  border-bottom: 3px solid var(--accent);
+  padding-bottom: .45rem;
+}
+h2 {
+  margin: 2rem 0 .75rem;
+  font-size: 1.2rem;
+  color: var(--accent);
+  border-bottom: 1px solid var(--line);
+  padding-bottom: .35rem;
+}
+h3 {
+  margin: 1.35rem 0 .55rem;
+  font-size: 1.02rem;
+  color: #0f3a5c;
+}
+p { margin: .55rem 0; }
+blockquote {
+  margin: .8rem 0;
+  padding: .7rem 1rem;
+  background: #fff8e8;
+  border-left: 4px solid #d4a017;
+  color: #5c4a1a;
+  border-radius: 0 8px 8px 0;
+  font-size: .92rem;
+}
+.formula {
+  background: var(--formula);
+  border-left: 4px solid var(--accent);
+  border-radius: 0 8px 8px 0;
+  padding: .85rem 1.1rem;
+  margin: .75rem 0;
+  overflow-x: auto;
+}
+.table-wrap { overflow-x: auto; margin: .75rem 0; }
+table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: .88rem;
+}
+th, td {
+  border: 1px solid var(--line);
+  padding: .4rem .55rem;
+  vertical-align: top;
+}
+th {
+  background: var(--accent);
+  color: #fff;
+  text-align: left;
+}
+tr:nth-child(even) td { background: #f8fafc; }
+code {
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: .86em;
+  background: #eef2f7;
+  padding: .05rem .3rem;
+  border-radius: 3px;
+}
+pre.diagram {
+  background: #0f172a;
+  color: #e2e8f0;
+  border-radius: 8px;
+  padding: 1rem 1.1rem;
+  overflow-x: auto;
+  font-size: .78rem;
+  line-height: 1.45;
+}
+pre.diagram code { background: none; color: inherit; padding: 0; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 1.5rem 0; }
+ul, ol { margin: .4rem 0 .8rem 1.2rem; }
+li { margin: .25rem 0; }
+.note { font-size: .85rem; color: var(--muted); margin-top: 1.5rem; }
+mjx-container { overflow-x: auto; overflow-y: hidden; max-width: 100%; }
+</style>
+</head>
+<body>
+<div class="layout">
+<nav class="toc"><h2>目录</h2><ol><li class="l1"><a href="#第9章-计算项公式清单-含基本数据与出处">第9章 · 计算项公式清单（含基本数据与出处）</a></li><li class="l2"><a href="#0-基础量-几乎所有计算的前置">0. 基础量（几乎所有计算的前置）</a></li><li class="l2"><a href="#1-水力曲线-规格-9-3-2">1. 水力曲线（规格 §9.3.2）</a></li><li class="l2"><a href="#2-清管器位置-9-5-2">2. 清管器位置（§9.5.2）</a></li><li class="l2"><a href="#3-浆水界面位置-9-5-3">3. 浆水界面位置（§9.5.3）</a></li><li class="l2"><a href="#4-泄漏监测-9-6-1">4. 泄漏监测（§9.6.1）</a></li><li class="l2"><a href="#5-堵塞监测-9-6-2">5. 堵塞监测（§9.6.2）</a></li><li class="l2"><a href="#6-磨蚀监测-9-6-3">6. 磨蚀监测（§9.6.3）</a></li><li class="l2"><a href="#7-超压实时判断-9-6-4">7. 超压实时判断（§9.6.4）</a></li><li class="l2"><a href="#8-低流速沉降实时判断-9-6-4">8. 低流速沉降实时判断（§9.6.4）</a></li><li class="l2"><a href="#9-水击在线识别-9-6-5">9. 水击在线识别（§9.6.5）</a></li><li class="l2"><a href="#10-加速流与消能-9-6-6">10. 加速流与消能（§9.6.6）</a></li><li class="l2"><a href="#11-泵功率-能耗优化相关-9-8-2">11. 泵功率 / 能耗优化相关（§9.8.2）</a></li><li class="l2"><a href="#12-智能预警-模拟-9-7-计算形态">12. 智能预警 / 模拟（§9.7）— 计算形态</a></li><li class="l2"><a href="#13-计算依赖总图-从基本数据到结果">13. 计算依赖总图（从基本数据到结果）</a></li><li class="l2"><a href="#14-资料对照索引">14. 资料对照索引</a></li><li class="l2"><a href="#15-落地注意-避免误用">15. 落地注意（避免误用）</a></li></ol></nav>
+<main>
+<h1 id="第9章-计算项公式清单-含基本数据与出处">第9章 · 计算项公式清单（含基本数据与出处）</h1><blockquote>依据：<code>专家系统订货技术规格书</code> §9 中「需要计算」的条款。<br/>公式优先对齐：<br/>1. <code>算法资料/核心算法公式汇总手册</code>（编号 <strong>A-xx / J-xx</strong>，对应原软件 Protected L2）<br/>2. <code>算法资料/浆体长距离管道输送工程设计标准</code>（<strong>T/CECS 98</strong> 类条文，表 4.2.2、§4.3、§4.4、附录 E）<br/>3. <code>算法资料/水力坡降线的说明</code>（HGL / MAOP 读图约定）<br/>4. 行业公开文献：负压波 / 物料平衡 / RTTM（如 API / Krohne PipePatrol 类综述）<br/>约定：凡写「基本数据」= 现场仪表、设计输入或上一步计算结果；「建议落地」= 重建时优先采用的实现路径。</blockquote><hr/><h2 id="0-基础量-几乎所有计算的前置">0. 基础量（几乎所有计算的前置）</h2><div class="table-wrap"><table>
+<thead><tr><th>#</th><th>计算项</th><th>公式</th><th>基本数据从哪来</th><th>出处</th></tr></thead>
+<tbody>
+<tr><td>B1</td><td>管内径</td><td>\(D_i=D_o-2(t_w+t_L)\)</td><td>外径 \(D_o\)、壁厚 \(t_w\)、衬里 \(t_L\)（设计/分段表）</td><td><strong>A-01</strong></td></tr>
+<tr><td>B2</td><td>流通面积</td><td>\(A=\pi D_i^2/4\)（手册中 \(D_i\) 以 mm 时有 \(10^6\) 换算）</td><td>\(D_i\)（B1）</td><td><strong>A-02</strong></td></tr>
+<tr><td>B3</td><td>管内流速</td><td>\(V=Q/(A\cdot 3600)\)（\(Q\) 为 m³/h）</td><td>流量计 \(Q\) 或稳态工况设定；面积 \(A\)</td><td><strong>A-06</strong>；标准 <strong>§4.2.1</strong></td></tr>
+<tr><td>B4</td><td>浆体密度</td><td>\(\rho_k=\Bigl(\dfrac{C_w}{\rho_g}+\dfrac{1-C_w}{\rho_s}\Bigr)^{-1}\)</td><td>重量浓度 \(C_w\)、固体真密度 \(\rho_g\)、水密度 \(\rho_s\)（物性输入）</td><td>标准 <strong>(4.3.1-2)</strong>；对照 <strong>A-19/A-20</strong></td></tr>
+<tr><td>B5</td><td>高程插值</td><td>\(z(x)\) 相邻桩号线性插值</td><td>纵断里程–高程表</td><td><strong>A-04</strong>；HGL 说明中的地形线</td></tr>
+<tr><td>B6</td><td>管坡</td><td>\(i_z=\Delta z/\Delta s\)</td><td>相邻计算点高程与里程</td><td><strong>A-05</strong></td></tr>
+</tbody></table></div><hr/><h2 id="1-水力曲线-规格-9-3-2">1. 水力曲线（规格 §9.3.2）</h2><h3 id="1-1-水力坡降-单位摩阻损失">1.1 水力坡降 / 单位摩阻损失</h3><p><strong>公式（软件内核，建议主用）</strong> — <strong>A-09</strong></p><div class="formula">$$V = C_V\frac{Q}{D_i^2},\quad
+\mathrm{Re}=\frac{1000\,\mathrm{SG}\,D_i\,V}{\mu_{\mathrm{eq}}},\quad
+i=\mathrm{sign}(Q)\,g_{\mathrm{fac}}\,C_G\,\frac{f V^{2}}{D_i}$$</div><p>其中 \(f\) 由雷诺数与相对粗糙度 \(\varepsilon/D\) 按 <strong>A-07</strong>（层流 \(64/\mathrm{Re}\)，湍流 Colebrook/Steffensen）计算。</p><p><strong>公式（设计标准，似均质流）</strong> — <strong>(4.3.1-1)</strong></p><div class="formula">$$i_k=\lambda\frac{V^2}{2gD}\frac{\rho_k}{\rho_s}$$</div><p><strong>基本数据</strong></p><div class="table-wrap"><table>
+<thead><tr><th>输入</th><th>来源</th></tr></thead>
+<tbody>
+<tr><td>\(Q\)</td><td>工况流量 / 流量计</td></tr>
+<tr><td>\(D_i,\varepsilon\)</td><td>管段几何表</td></tr>
+<tr><td>\(\mathrm{SG}\) 或 \(\rho_k\)</td><td>浓度计 + 固体密度（B4）或密度计</td></tr>
+<tr><td>\(\mu_{\mathrm{eq}}\) / \(\tau_B,\eta\)</td><td>流变试验或多浓度流变表</td></tr>
+<tr><td>\(g_{\mathrm{fac}}\)</td><td>清水/矿浆梯度修正表（GFw/GFs）</td></tr>
+<tr><td>\(\lambda\) 或 \(f\)</td><td>由 Re、粗糙度计算（A-07 或标准 §4.3.2）</td></tr>
+</tbody></table></div><p><strong>说明：</strong> HGL 说明文中「坡降线斜率 ∝ \(V^2\)」与上式一致；浓度变稠、流量变小 → 坡降变缓。</p><hr/><h3 id="1-2-稳态运行-HGL-静压分布">1.2 稳态运行 HGL / 静压分布</h3><p><strong>累加水头损失</strong> — <strong>A-11</strong></p><div class="formula">$$\Delta H=\sum_k \Delta x_k\, i_k(Q)$$</div><p><strong>推进（概念，与 HGL 说明一致）</strong></p><div class="formula">$$H(s+\Delta s)=H(s)-i\cdot\Delta s
++\Delta H_{\mathrm{pump}}-\Delta H_{\mathrm{valve/local}}$$</div><p>若 \(H<z\)，钳制到管中心线（松弛流/不满管示意）。</p><p><strong>压力 ↔ HGL</strong> — <strong>A-43</strong></p><div class="formula">$$H=z+\frac{P}{\mathrm{SG}\,\rho_w g},\qquad
+P=\mathrm{SG}\,\rho_w g\,(H-z)$$</div><p><strong>基本数据：</strong> 上游边界水头/罐液位或定压；纵断 \(z(s)\)；§1.1 的 \(i\)；泵扬程、阀局部损失（设备表/开度）。</p><p><strong>输出：</strong> 各里程 \(H,P,V,i\) —— 即规格「静压分布、流速分布、单位阻力损失分布」及承压线对照基础。</p><hr/><h3 id="1-3-临界流速-V_c-与沉降判断-9-3-2-9-6-4">1.3 临界流速 \(V_c\) 与沉降判断（§9.3.2 + §9.6.4）</h3><p><strong>标准表 4.2.2（任选并经试验校核）</strong></p><p>刘德忠：</p><div class="formula">$$V_c=9.5\left[gD\left(\frac{\rho_g-\rho_k}{\rho_k}\right)\omega\right]^{1/3}
+C_V^{1/6}\left(\frac{\omega_s}{\omega}\right)^{1/6}$$</div><p>瓦斯普：</p><div class="formula">$$V_c=3.113\,C_V^{0.1858}
+\left[2gD\left(\frac{\rho_g-\rho_k}{\rho_k}\right)\right]^{1/2}
+\left(\frac{d_{85}}{D}\right)^{1/6}$$</div><p>费祥俊：</p><div class="formula">$$V_c=\frac{2.26}{\sqrt{\lambda}}
+\left[gD\left(\frac{\rho_g-\rho_k}{\rho_k}\right)\right]^{1/2}
+C_V^{1/4}\left(\frac{d_{90}}{D}\right)^{1/3}$$</div><p><strong>设计要求：</strong> \(V_{\mathrm{设计}}>1.10\,V_c\)（标准 <strong>4.2.3</strong>）；规格报警用 \(1.1/1.0/0.9\,V_c\)（§9.6.4）。</p><p><strong>基本数据：</strong> 内径 \(D\)、固体密度 \(\rho_g\)、浆体密度 \(\rho_k\)（或浓度）、体积浓度 \(C_V\)、粒径 \(d_{85}/d_{90}\) 或沉速 \(\omega,\omega_s\)（附录 C / 粒度分布）、摩阻系数 \(\lambda\)（费祥俊式）。</p><p><strong>判断：</strong> 用 B3 的实际 \(V\) 与 \(V_c\) 比较。</p><hr/><h3 id="1-4-许用压力-MAOP-许用-HGL-承压线">1.4 许用压力 / MAOP / 许用 HGL（承压线）</h3><p><strong>稳态许用内压</strong> — <strong>A-45</strong>（Barlow）</p><div class="formula">$$P_{\mathrm{ss}}=2\,f_d\frac{(t-c_a)\sigma_y}{D_o}\,C_P$$</div><p><strong>瞬态许用</strong> — <strong>A-46</strong></p><div class="formula">$$P_{\mathrm{tr}}=f_t\,P_{\mathrm{ss}}$$</div><p><strong>许用 HGL</strong> — <strong>A-47</strong></p><div class="formula">$$H_{\mathrm{allow}}=z+\frac{P_{\mathrm{allow}}}{\mathrm{SG}\,\rho_w g}\quad(\text{单位换算按手册 }C_P\text{)}$$</div><p><strong>壁厚设计式（标准，反推/校核用）</strong> — <strong>(3.2.7)</strong></p><div class="formula">$$t=\frac{P\cdot D}{2K\phi\sigma_s}+C\cdot S$$</div><p><strong>超压警戒值（规格 §9.6.4）</strong></p><div class="formula">$$P_{\mathrm{警戒}}=\min\bigl(P_{\mathrm{ss}},\;P_{\mathrm{法兰/阀许用}},\;\ldots\bigr)$$</div><p>HGL 说明：MAOP 线必须始终在运行水力坡降线之上。</p><p><strong>基本数据：</strong> \(D_o,t,\sigma_y,f_d,f_t,c_a\)；法兰/阀件铭牌许用压；当地 \(\mathrm{SG}\)；纵断 \(z\)。</p><hr/><h3 id="1-5-瞬态-水锤-阀关-流量变更-负压区-9-3-2-2-9-6-5">1.5 瞬态（水锤 / 阀关 / 流量变更 / 负压区）— §9.3.2(2)、§9.6.5</h3><p><strong>压力波速（软件）</strong> — <strong>A-13</strong>（Streeter–Wylie 型混合物）</p><div class="formula">$$a=\sqrt{X/Y}$$</div><p>（\(Y\) 含空气、液相、固相、管壁柔性；详见手册。）</p><p><strong>波速（标准附录 E.0.1，浆体）</strong></p><div class="formula">$$a=\left[\rho_k\left(
+\frac{1-C_v}{E_w}+\frac{C_v}{E_s}+\frac{D_\delta}{E_p\delta}
+\right)\right]^{-1/2}$$</div><p>（\(E_w,E_p,E_s\) 为水/管/物料弹性模量，取值见标准。）</p><p><strong>特征阻抗</strong> — <strong>A-12</strong></p><div class="formula">$$B \propto a/A$$</div><p><strong>特征线相容（核心步进）</strong> — <strong>A-14</strong></p><div class="formula">$$H_P = C\pm - B\,Q_P\quad(\text{C⁺/C⁻ 特征})$$</div><p><strong>快速估算（Joukowsky，阀瞬间关闭量级）</strong></p><div class="formula">$$\Delta P \approx \rho\, a\, \Delta V$$</div><p>标准 <strong>4.5.1</strong>：允许水击压力可按钢管许用应力的 <strong>1.1 倍</strong> 控制。</p><p><strong>基本数据：</strong> 管几何与模量、夹气、浓度/密度、\(\Delta t\) 与网格；泵停/启、阀行程时间、流量轨迹；边界条件。</p><p><strong>输出：</strong> 沿线瞬态最大/最小压力包络、超限点、负压点（规格表格字段）。</p><hr/><h2 id="2-清管器位置-9-5-2">2. 清管器位置（§9.5.2）</h2><div class="table-wrap"><table>
+<thead><tr><th>方法</th><th>公式/算法</th><th>基本数据</th><th>出处</th></tr></thead>
+<tbody>
+<tr><td>压差法定位</td><td>监测各站压力阶跃时刻序列，将清管器置于「最近一次阶跃测点」与「下一测点」之间；精细化可用压差波形相关求时延</td><td>各阀室/泵站出入口压力时序、流量</td><td>规格正文；管道清管压差定位工程惯例</td></tr>
+<tr><td>卡堵判断</td><td>\(\Delta P_{\mathrm{段}}\) 持续增大 <strong>且</strong> \(Q\) 持续下降不恢复 → 卡堵在该两测点之间</td><td>同上</td><td>规格 §9.5.2</td></tr>
+<tr><td>光纤</td><td>振动相位/相关时延 → 里程；\(v=\mathrm{d}s/\mathrm{d}t\)</td><td>DAS 振动</td><td>规格（可选）</td></tr>
+</tbody></table></div><p>精度指标：定位 ≤3 m；刷新 ≥1 Hz（规格）。</p><hr/><h2 id="3-浆水界面位置-9-5-3">3. 浆水界面位置（§9.5.3）</h2><p><strong>容积跟踪（工程常用）</strong></p><p>设管内截面积分段 \(A_i\)，从始端注入浆体净体积：</p><div class="formula">$$\mathcal{V}_{\mathrm{slurry}}(t)=\int_0^t\bigl(Q_{\mathrm{in,s}}-Q_{\mathrm{out,s}}\bigr)\,\mathrm{d}\tau$$</div><p>界面里程 \(s_{\mathrm{if}}\) 满足：</p><div class="formula">$$\int_0^{s_{\mathrm{if}}} A(s)\,\mathrm{d}s = \mathcal{V}_{\mathrm{slurry}}(t)$$</div><p>可用密度/压力辅助校正（规格：结合始末端流量、压力与密度差）。</p><p><strong>基本数据：</strong> 始末端体积/质量流量、管段 \(A(s)\)（由 B1/B2）、密度计或浓度突变信号。</p><p><strong>指标：</strong> 误差 ≤ 0.5%·管段长 + 100 m；≥1 Hz。</p><hr/><h2 id="4-泄漏监测-9-6-1">4. 泄漏监测（§9.6.1）</h2><h3 id="4-1-负压波定位">4.1 负压波定位</h3><p>规格给出（忽略流速时）：</p><div class="formula">$$L=\frac{a L_{\mathrm{总}}-(x_2-x_1)\,a\,\Delta t}{2a}$$</div><p>等价常用形式（泄漏点距上游传感器距离 \(x\)）：</p><div class="formula">$$x=\frac{L+a\,\Delta t}{2}
+\quad(\Delta t=t_{\mathrm{up}}-t_{\mathrm{dn}},\ \text{符号约定需与测点一致})$$</div><p>计及流体流速 \(u\) 时（公开文献改进式）：</p><div class="formula">$$x=\frac{L(a-u)+\Delta t\,(a^2-u^2)}{2a}$$</div><p><strong>基本数据：</strong> 上下游压力波形到达时刻差 \(\Delta t\)；波速 \(a\)（§1.5 / A-13）；测点里程 \(x_1,x_2\)；可选当地流速 \(u\)（B3）。</p><h3 id="4-2-物料平衡">4.2 物料平衡</h3><div class="formula">$$\dot m_{\mathrm{leak}}=\sum \dot m_{\mathrm{in}}-\sum \dot m_{\mathrm{out}}-\frac{\mathrm{d}M_{\mathrm{inv}}}{\mathrm{d}t}$$</div><p>稳态近似常令库存变化由压力/温度修正的管存模型给出（RTTM 补偿）。累积：</p><div class="formula">$$M_{\mathrm{imb}}(t)=\int_0^t \dot m_{\mathrm{leak}}\,\mathrm{d}\tau$$</div><p><strong>基本数据：</strong> 首站/支线/末站质量流量（或体积流量×密度）；压力温度用于管存。</p><h3 id="4-3-RTTM">4.3 RTTM</h3><p>一维瞬态模型实时求 \(\hat P(s,t),\hat Q(s,t)\)（同 §1.5 特征线），残差：</p><div class="formula">$$e_P=P_{\mathrm{meas}}-\hat P,\quad e_Q=Q_{\mathrm{meas}}-\hat Q$$</div><p>持续超阈则迭代反算泄漏位置与泄漏量（偏差源定位）。</p><p><strong>基本数据：</strong> 全线边界 P/Q、物性、管网拓扑；同水力模型。</p><h3 id="4-4-光纤测漏">4.4 光纤测漏</h3><p>由相位差/变化率或声发射时延定位（设备侧算法）；软件侧取里程输出。</p><h3 id="4-5-分级用泄漏占比">4.5 分级用泄漏占比</h3><div class="formula">$$r_{\mathrm{leak}}=\frac{Q_{\mathrm{leak}}}{Q_{\mathrm{nom}}}
+\quad\Rightarrow\quad
+\text{蓝 }\le1\%;\ \text{橙 }1\%\sim5\%;\ \text{红 }\ge5\%$$</div><hr/><h2 id="5-堵塞监测-9-6-2">5. 堵塞监测（§9.6.2）</h2><h3 id="5-1-预期-vs-实际压降梯度">5.1 预期 vs 实际压降梯度</h3><p><strong>预期梯度</strong>（无堵塞，水力模型）</p><div class="formula">$$i_{\mathrm{exp}}=\frac{\Delta P_{\mathrm{model}}}{L}
+\quad\text{或由 §1.1 的 }i(Q,\rho,\ldots)$$</div><p><strong>实际梯度</strong></p><div class="formula">$$i_{\mathrm{act}}=\frac{P_{\mathrm{in}}-P_{\mathrm{out}}}{L}$$</div><div class="formula">$$\mathrm{ratio}=\frac{i_{\mathrm{act}}}{i_{\mathrm{exp}}}$$</div><p>规格：ratio > 1.3 / 1.6 / 2.0 → 蓝 / 橙 / 红。</p><h3 id="5-2-堵塞程度-规格公式-符号需买方确认">5.2 堵塞程度（规格公式，符号需买方确认）</h3><div class="formula">$$B\%=\Bigl(1-\frac{1}{\Omega\sqrt{\mathrm{ratio}}}\Bigr)\times 100\%$$</div><h3 id="5-3-质量体积平衡-堵塞判别">5.3 质量体积平衡（堵塞判别）</h3><p>由进出口 \(Q,P,T\) 算质量流量与管内质量变化 \(\Delta M\)；堵塞时动量/质量关系与泄漏不同（常表现为上游憋压、下游失压，流量不对称）。与压力梯度法融合定位。</p><p><strong>基本数据：</strong> 段端压力、流量、温度、密度；§1.1 模型预期压降。</p><hr/><h2 id="6-磨蚀监测-9-6-3">6. 磨蚀监测（§9.6.3）</h2><p><strong>减薄率</strong></p><div class="formula">$$\delta_t=\frac{t_0-t(t)}{t_0},\quad
+\dot t\approx\frac{\mathrm{d}t}{\mathrm{d}t_{\mathrm{calendar}}}$$</div><p><strong>剩余寿命（线性近似，常用）</strong></p><div class="formula">$$T_{\mathrm{rem}}=\frac{t(t)-t_{\mathrm{limit}}}{|\dot t|}$$</div><p>\(t_{\mathrm{limit}}\)：设计年限服役终了极限壁厚（强度反算，可用 §1.4 的 \(P,D,K,\sigma_s\) 约束）。</p><p><strong>分级：</strong> \(\delta_t=20\%/50\%\)；或 \(t\to t_{\mathrm{limit}}\)。</p><p><strong>基本数据：</strong> 壁厚传感器 \(t(t)\)、原始壁厚 \(t_0\)、设计极限壁厚、历史序列。</p><hr/><h2 id="7-超压实时判断-9-6-4">7. 超压实时判断（§9.6.4）</h2><p>已算 \(P_{\mathrm{警戒}}\)（§1.4）后：</p><div class="formula">$$\frac{P_{\mathrm{meas}}}{P_{\mathrm{警戒}}}\ge 0.6 / 0.8 / 1.0
+\quad\Rightarrow\quad\text{蓝/橙/红}$$</div><p><strong>基本数据：</strong> 全线压力测点；警戒值（设计+管件许用最小值）。</p><hr/><h2 id="8-低流速沉降实时判断-9-6-4">8. 低流速沉降实时判断（§9.6.4）</h2><div class="formula">$$V=Q/A\quad(\text{B3}),\quad
+V_c=\text{§1.3}$$</div><div class="formula">$$V<1.1\,V_c\ /\ 1.0\,V_c\ /\ 0.9\,V_c
+\quad\Rightarrow\quad\text{蓝/橙/红}$$</div><p><strong>基本数据：</strong> 实时流量、分段内径、物性与粒度（算 \(V_c\)）。</p><hr/><h2 id="9-水击在线识别-9-6-5">9. 水击在线识别（§9.6.5）</h2><p><strong>特征量（信号侧）</strong></p><div class="formula">$$s_P=\frac{\mathrm{d}P}{\mathrm{d}t},\quad
+P_{\mathrm{peak}}=\max|P|,\quad
+T_{\mathrm{osc}}=\text{主震荡周期}$$</div><p><strong>对照基准</strong></p><ul><li>稳态工作压力 \(P_{\mathrm{ss,work}}(s)\)：来自 §1.2 当前稳态解或短时滤波均值  </li><li>超压警戒：§1.4  </li><li>汽化临界负压 \(P_{\mathrm{vap}}\)：由温度与浆体物性（饱和蒸汽压 / 工程设定）  </li></ul><p><strong>正压分级（规格）</strong></p><div class="table-wrap"><table>
+<thead><tr><th>条件</th><th>等级</th></tr></thead>
+<tbody>
+<tr><td>\(P>1.1\,P_{\mathrm{ss,work}}\)</td><td>蓝</td></tr>
+<tr><td>\(P>1.5\,P_{\mathrm{ss,work}}\)（未超警戒）或 \(P\ge0.8\,P_{\mathrm{警戒}}\)</td><td>橙</td></tr>
+<tr><td>\(P\ge P_{\mathrm{警戒}}\)</td><td>红</td></tr>
+</tbody></table></div><p><strong>负压分级：</strong> 相对 \(P_{\mathrm{vap}}\) 的 0 / 0.8 / 1.0。</p><p><strong>基本数据：</strong> 高频压力采样；§1.2–1.5 模型包络；物性温度。</p><hr/><h2 id="10-加速流与消能-9-6-6">10. 加速流与消能（§9.6.6）</h2><h3 id="10-1-加速流判别-标准-4-4-1">10.1 加速流判别 — 标准 **(4.4.1)**</h3><p>两点能量差大于摩阻损失则可能不满管/加速流：</p><div class="formula">$$\left(Z_1+\frac{P_1}{\rho_k g}\right)
+-\left(Z_2+\frac{P_2}{\rho_k g}\right)
+> i L$$</div><p><strong>剩余位能 / 冲击水头（工程定义，对接规格「冲击水头」阈值）</strong></p><div class="formula">$$H_{\mathrm{surplus}}=
+\left(Z_1+\frac{P_1}{\rho_k g}\right)
+-\left(Z_2+\frac{P_2}{\rho_k g}\right)
+- i L$$</div><div class="formula">$$\frac{H_{\mathrm{surplus}}}{H_{\mathrm{lim}}}\ge 0.6/0.8/1.0
+\quad\text{或高点 }P<0
+\quad\Rightarrow\quad\text{蓝/橙/红}$$</div><p><strong>基本数据：</strong> 两点高程、压力、段长、§1.1 的 \(i\)、\(\rho_k\)；阈值 \(H_{\mathrm{lim}}\)（项目配置）。</p><h3 id="10-2-孔板消能水头-标准-4-4-2">10.2 孔板消能水头 — 标准 **(4.4.2)**</h3><div class="formula">$$\Delta h=K_{\mathrm{QK}} Q^2,\quad
+K_{\mathrm{QK}}=6.3755\times10^{-9}\frac{(1-\beta^2)(1.142-\beta^2)}{d^4},\quad
+\beta=d/D$$</div><p><strong>基本数据：</strong> 流量 \(Q\)、孔径 \(d\)、管径 \(D\)、孔板投入组合。</p><h3 id="10-3-消能站站后压力阈值">10.3 消能站站后压力阈值</h3><p>规格：站前阈 = \(P_{\mathrm{警戒}}\)；站后阈 = <strong>由下游工况水力反算</strong>（保证到达终端微正压/进罐压 + 下游许用），即用 §1.2 从终端边界向上游反推所需站后最小/最大压。</p><p>浓度/流量：与设计窗 \([C_{\min},C_{\max}]\times[Q_{\min},Q_{\max}]\) 比较（直接阈值，无需复杂公式）。</p><hr/><h2 id="11-泵功率-能耗优化相关-9-8-2">11. 泵功率 / 能耗优化相关（§9.8.2）</h2><p><strong>电机功率（标准泵送章常用）</strong></p><div class="formula">$$N=\frac{\rho g Q H}{1000\,\eta_{\mathrm{pump}}\eta_{\mathrm{motor}}}
+\quad(\text{单位按标准条文统一})$$</div><p><strong>优化陈述（规格）</strong></p><div class="formula">$$\min\ \frac{E_{\mathrm{water}}+E_{\mathrm{elec}}}{m_{\mathrm{solids}}}
+\quad\text{s.t.}\quad
+V\ge 1.1 V_c,\ 
+P\le P_{\mathrm{警戒}},\ 
+\text{水力扰动约束}$$</div><p>决策变量：泵转速（或频率）、经济流速；硬约束调用 §1.3、§1.4、§1.2。</p><p><strong>基本数据：</strong> 泵特性曲线、实测功率/转速、流量浓度、§1 水力结果。</p><hr/><h2 id="12-智能预警-模拟-9-7-计算形态">12. 智能预警 / 模拟（§9.7）— 计算形态</h2><div class="table-wrap"><table>
+<thead><tr><th>项</th><th>计算内容</th><th>基本数据</th></tr></thead>
+<tbody>
+<tr><td>异常评分</td><td>多变量相对正常分布的偏离（马氏距离/残差/学习模型输出置信度）</td><td>长期工艺时序（9.9.3）</td></tr>
+<tr><td>堵管征兆</td><td>\(\mathrm{d}V/\mathrm{d}t<0\) 且 \(\mathrm{d}(\Delta P)/\mathrm{d}t>0\) 持续</td><td>流速、段压差</td></tr>
+<tr><td>泄漏征兆</td><td>物料平衡微小持续正累积</td><td>§4.2</td></tr>
+<tr><td>沉降征兆</td><td>\(V\to V_c\) 且浓度上升</td><td>§1.3 + 浓度计</td></tr>
+<tr><td>离线预演</td><td>改泵速/阀位后重跑 §1.2–1.5，再套 §7–10 判断</td><td>操作假设 + 全套水力输入</td></tr>
+</tbody></table></div><hr/><h2 id="13-计算依赖总图-从基本数据到结果">13. 计算依赖总图（从基本数据到结果）</h2><pre class="diagram"><code>[设计表] Do,t,ε,σy,fd,纵断z,站里程
+[物性]  ρg,Cw/Cv,粒度,流变μ/τB
+[实时]  Q,P,T,ρ,壁厚,阀位,泵速
+        │
+        ▼
+   B1–B6 几何/流速/密度/高程
+        │
+        ├─► i,f,Re ──► HGL/P稳态 ──► 承压线/超压
+        ├─► Vc ────────► 沉降分级
+        ├─► a,B,MOC ───► 瞬态包络/水击分级
+        ├─► H_surplus ─► 加速流分级
+        ├─► Δh孔板 ────► 消能调节
+        ├─► NPW/平衡/RTTM ► 泄漏
+        ├─► ratio ──────► 堵塞
+        └─► δt,寿命 ───► 磨蚀</code></pre><hr/><h2 id="14-资料对照索引">14. 资料对照索引</h2><div class="table-wrap"><table>
+<thead><tr><th>本地/公开资料</th><th>主要支撑章节</th></tr></thead>
+<tbody>
+<tr><td><code>核心算法公式汇总手册</code> A-01~A-14, A-43~A-47, J-01</td><td>几何、摩阻、HGL、声速、特征线、许用压</td></tr>
+<tr><td><code>浆体长距离管道输送工程设计标准</code> §3.2.7, §4.2~4.5, 附录 E</td><td>\(V_c\)、摩阻 \(i_k\)、加速流、孔板、水击波速</td></tr>
+<tr><td><code>水力坡降线的说明</code></td><td>HGL 读图、MAOP 须高于运行坡降线、浓度–坡降关系</td></tr>
+<tr><td>负压波/RTTM/质量平衡综述（如 <em>Fundamentals of LDS</em>、Krohne E-RTTM 现场报告）</td><td>泄漏定位与模型补偿平衡</td></tr>
+</tbody></table></div><hr/><h2 id="15-落地注意-避免误用">15. 落地注意（避免误用）</h2><ol><li><strong>临界流速</strong>无单一「真理公式」：标准列三式供选用，须环管试验或类似工程校核后再进报警阈值。  </li><li><strong>A-09 与标准 (4.3.1)</strong> 单位制不同（软件常用工程常数）；重建时内核定死一套 SI，界面再换算。  </li><li><strong>堵塞 B% 公式</strong>中 \(\Omega\) 规格排版不清，实现前与买方书面确认。  </li><li><strong>光纤</strong>类以设备算法为准，本清单只保留里程/速度接口。  </li><li><strong>智能预警/预测</strong>无封闭解析式，属数据驱动；水力硬约束仍回到本清单 §1–§10。</li></ol><hr/><p><em>本文是对 <code>第9章_计算与判断需求提取.md</code> 的公式展开版；判断阈值与处置角色仍以规格书 §9 原文为准。</em></p>
+<p class="note">公式由 MathJax 渲染（需联网加载 CDN）。源文件：第9章_计算项公式与数据来源.md</p>
+</main>
+</div>
+</body>
+</html>

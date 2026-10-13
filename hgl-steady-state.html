@@ -1,0 +1,1140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>稳态总览 · 图与预警报警（本地可调参）</title>
+<script>
+window.MathJax = {
+  tex: { inlineMath: [['$','$']], displayMath: [['$$','$$']] },
+  svg: { fontCache: 'global' }
+};
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+<style>
+:root {
+  --bg: #f3f5f8;
+  --card: #fff;
+  --ink: #1a1a1a;
+  --muted: #5a6570;
+  --line: #d8dee6;
+  --accent: #1F4E79;
+  --hgl: #2563eb;
+  --terrain: #78716c;
+  --allow-ss: #ca8a04;
+  --allow-tr: #dc2626;
+  --station: #b91c1c;
+  --press: #0d9488;
+  --pumpc: #7c3aed;
+  --ok: #15803d;
+  --warn: #b45309;
+  --alarm: #b91c1c;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; font-family: "PingFang SC", "Noto Sans SC", "Segoe UI", sans-serif;
+  background: var(--bg); color: var(--ink); line-height: 1.55;
+}
+.wrap { max-width: 1180px; margin: 0 auto; padding: .6rem 1rem 3rem; }
+.card {
+  background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+  padding: 1rem 1.1rem; margin: 1rem 0; box-shadow: 0 1px 2px rgba(0,0,0,.04);
+}
+.card h2 {
+  margin: 0 0 .75rem; font-size: 1.05rem; color: var(--accent);
+  border-bottom: 1px solid var(--line); padding-bottom: .4rem;
+}
+.card h3 { margin: .9rem 0 .4rem; font-size: .95rem; color: #334155; }
+.legend { display: flex; flex-wrap: wrap; gap: .55rem 1rem; font-size: .85rem; margin: .5rem 0 0; }
+.legend span { display: inline-flex; align-items: center; gap: .35rem; }
+.sw { width: 18px; height: 3px; border-radius: 2px; display: inline-block; }
+canvas {
+  width: 100%; height: auto; display: block; background: #fafbfc;
+  border: 1px solid var(--line); border-radius: 8px;
+}
+#sec-charts {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  margin-top: 0;
+  border-radius: 0 0 10px 10px;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, .12);
+  /* sticky + overflow 会导致部分浏览器 canvas 位图不刷新 */
+  overflow: visible;
+  padding: .7rem .9rem .8rem;
+  background: var(--card);
+}
+#sec-charts h2 { margin-bottom: .45rem; padding-bottom: .3rem; font-size: .98rem; }
+#sec-charts .tabs { margin-bottom: .45rem; }
+#sec-charts .legend { margin-top: .35rem; font-size: .8rem; }
+#sec-charts .note { margin: .3rem 0 0; font-size: .78rem; }
+#sec-charts .kpi { margin-top: .35rem; }
+#sec-charts canvas {
+  width: 100%;
+  height: 280px;
+}
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: .75rem; }
+@media (max-width: 900px) {
+  .grid2, .grid3 { grid-template-columns: 1fr; }
+}
+label.field {
+  display: grid; grid-template-columns: 1fr auto; gap: .15rem .5rem;
+  font-size: .82rem; margin-bottom: .55rem; align-items: center;
+}
+label.field .name { color: var(--muted); grid-column: 1 / -1; }
+label.field .role {
+  grid-column: 1 / -1; font-size: .72rem; color: #8a5a00;
+  background: #fff8e7; border-radius: 4px; padding: .1rem .35rem; margin-bottom: .15rem;
+}
+label.field input, label.field select {
+  width: 100%; padding: .35rem .45rem; border: 1px solid var(--line);
+  border-radius: 6px; font-size: .9rem;
+}
+label.field .unit { color: var(--muted); font-size: .78rem; min-width: 2.5rem; }
+.seg-table, .map-table, .alarm-table, .station-table {
+  width: 100%; border-collapse: collapse; font-size: .82rem;
+}
+.seg-table th, .seg-table td,
+.map-table th, .map-table td,
+.alarm-table th, .alarm-table td,
+.station-table th, .station-table td {
+  border: 1px solid var(--line); padding: .35rem .4rem; vertical-align: top;
+}
+.seg-table th, .map-table th, .alarm-table th, .station-table th {
+  background: #1F4E79; color: #fff; text-align: left;
+}
+.seg-table th { position: sticky; top: 0; }
+.map-table tr:nth-child(even), .alarm-table tr:nth-child(even) { background: #f8fafc; }
+.seg-table input { width: 100%; min-width: 3.5rem; padding: .2rem; border: 1px solid #e5e7eb; border-radius: 4px; }
+.toolbar { display: flex; flex-wrap: wrap; gap: .5rem; margin: .5rem 0 0; }
+button {
+  border: 0; border-radius: 6px; padding: .45rem .8rem; cursor: pointer;
+  background: var(--accent); color: #fff; font-size: .85rem;
+}
+button.secondary { background: #64748b; }
+button.warn { background: #b45309; }
+.note { font-size: .85rem; color: var(--muted); }
+.formula {
+  background: #f4f7fb; border-left: 4px solid var(--accent);
+  padding: .75rem 1rem; margin: .6rem 0; overflow-x: auto;
+}
+code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .84em; background: #eef2f7; padding: .05rem .3rem; border-radius: 3px; }
+.kpi { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: .6rem; }
+.kpi div {
+  background: #eef4fa; border-radius: 8px; padding: .45rem .7rem; font-size: .82rem;
+}
+.kpi b { color: var(--accent); }
+.tabs {
+  display: flex; flex-wrap: wrap; gap: .4rem; margin: 0 0 .75rem;
+}
+.tabs button {
+  background: #e2e8f0; color: #1e293b; font-weight: 500;
+}
+.tabs button.active { background: var(--accent); color: #fff; }
+.panel { display: none; }
+.panel.active { display: block; }
+.badge {
+  display: inline-block; border-radius: 999px; padding: .1rem .55rem;
+  font-size: .75rem; font-weight: 600; color: #fff;
+}
+.badge.ok { background: var(--ok); }
+.badge.warn { background: var(--warn); }
+.badge.alarm { background: var(--alarm); }
+.badge.off { background: #94a3b8; }
+.status-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: .6rem; }
+.status-card {
+  border: 1px solid var(--line); border-radius: 8px; padding: .65rem .75rem;
+  background: #f8fafc;
+}
+.status-card .title { font-size: .78rem; color: var(--muted); margin-bottom: .25rem; }
+.status-card .val { font-size: .95rem; font-weight: 600; }
+.status-card.level-ok { border-left: 4px solid var(--ok); }
+.status-card.level-warn { border-left: 4px solid var(--warn); background: #fffbeb; }
+.status-card.level-alarm { border-left: 4px solid var(--alarm); background: #fff1f2; }
+.logbox {
+  max-height: 220px; overflow: auto; font-size: .8rem;
+  background: #0f172a; color: #e2e8f0; border-radius: 8px; padding: .6rem .75rem;
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+}
+.logbox .L-warn { color: #fbbf24; }
+.logbox .L-alarm { color: #f87171; }
+.logbox .L-ok { color: #86efac; }
+.logbox .L-info { color: #93c5fd; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <section class="card" id="sec-charts">
+    <h2>① 最终呈现 · 四类图</h2>
+    <div class="tabs" id="chartTabs">
+      <button type="button" class="active" data-panel="p-hgl">HGL 剖面</button>
+      <button type="button" data-panel="p-press">管线压力</button>
+      <button type="button" data-panel="p-pump">泵工作点</button>
+      <button type="button" data-panel="p-station">站点 P/Q</button>
+    </div>
+
+    <div class="panel active" id="p-hgl">
+      <canvas id="chartHgl" width="1100" height="300"></canvas>
+      <div class="legend">
+        <span><i class="sw" style="background:var(--terrain)"></i>管中心线高程</span>
+        <span><i class="sw" style="background:var(--hgl)"></i>运行 HGL</span>
+        <span><i class="sw" style="background:var(--allow-ss)"></i>稳态许用 HGL</span>
+        <span><i class="sw" style="background:var(--allow-tr)"></i>瞬态许用 HGL</span>
+        <span><i class="sw" style="background:var(--station)"></i>泵站</span>
+      </div>
+    </div>
+
+    <div class="panel" id="p-press">
+      <canvas id="chartPress" width="1100" height="300"></canvas>
+      <div class="legend">
+        <span><i class="sw" style="background:var(--press)"></i>运行压力 LineP</span>
+        <span><i class="sw" style="background:var(--allow-ss)"></i>稳态许用压力</span>
+        <span><i class="sw" style="background:var(--allow-tr)"></i>瞬态许用压力</span>
+        <span><i class="sw" style="background:#94a3b8"></i>零压线</span>
+      </div>
+      <p class="note">与 HGL 同源：\(P=\mathrm{SG}\,\rho_w g\,(H-z)\)。碰黄线 = 超压风险（与报警联动）。</p>
+    </div>
+
+    <div class="panel" id="p-pump">
+      <canvas id="chartPump" width="1100" height="300"></canvas>
+      <div class="legend">
+        <span><i class="sw" style="background:var(--pumpc)"></i>泵 Q–H 特性（二次近似）</span>
+        <span><i class="sw" style="background:#ef4444"></i>当前工作点</span>
+        <span><i class="sw" style="background:#64748b"></i>系统需求扬程（该流量下）</span>
+      </div>
+      <div class="kpi" id="kpiPump"></div>
+      <p class="note">本页泵扬程可手填；曲线用于对照「工作点是否落在特性上」。完整版应由多项式/查表算 tdh。</p>
+    </div>
+
+    <div class="panel" id="p-station">
+      <div style="overflow:auto;">
+        <table class="station-table" id="stationTable">
+          <thead>
+            <tr>
+              <th>站点角色</th>
+              <th>里程 km</th>
+              <th>高程 masl</th>
+              <th>上游 HGL</th>
+              <th>下游 HGL</th>
+              <th>上游 P kPa</th>
+              <th>下游 P kPa</th>
+              <th>流量 m³/h</th>
+              <th>备注</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="kpi" id="kpi"></div>
+    </div>
+  </section>
+
+  <section class="card" id="sec-alarms">
+    <h2>② 预警 / 报警（对齐专家总览类别）</h2>
+    <p class="note">
+      类别对齐原 SystemOverview 定时器：超压 OverPress、松弛流 Slack、泄漏 Leak、罐液位 TankLevel；另加通信 Comm 占位。
+      <strong>预警</strong> = 接近限值；<strong>报警</strong> = 越限或确认事件。泄漏为稳态示意（流量不平衡），非完整泄漏定位算法。
+    </p>
+    <div class="status-grid" id="alarmStatus"></div>
+    <h3>报警目录与当前判定</h3>
+    <div style="overflow:auto;">
+      <table class="alarm-table" id="alarmTable">
+        <thead>
+          <tr>
+            <th>映射键</th>
+            <th>类别</th>
+            <th>级别</th>
+            <th>触发条件（本页）</th>
+            <th>当前观测</th>
+            <th>状态</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <h3>事件日志（本次会话）</h3>
+    <div class="logbox" id="alarmLog"></div>
+    <div class="toolbar">
+      <button type="button" class="secondary" id="btnClearLog">清空日志</button>
+      <button type="button" class="warn" id="btnForceLeak">模拟泄漏报警边沿</button>
+    </div>
+  </section>
+
+  <div class="grid2" id="sec-params">
+    <section class="card">
+      <h2>③ 全局工况</h2>
+      <div id="globals"></div>
+      <div class="toolbar">
+        <button type="button" id="btnRecalc">重新计算</button>
+        <button type="button" class="secondary" id="btnReset">恢复默认工况</button>
+      </div>
+    </section>
+    <section class="card">
+      <h2>④ 设备 / 边界 / 报警阈值</h2>
+      <div id="equipment"></div>
+    </section>
+  </div>
+
+  <section class="card" id="sec-segs">
+    <h2>⑤ 管段表</h2>
+    <div style="overflow:auto; max-height: 320px;">
+      <table class="seg-table" id="segTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>段长 L<br/>(km)</th>
+            <th>终点高程<br/>(masl)</th>
+            <th>内径 Di<br/>(mm)</th>
+            <th>粗糙度 ε<br/>(mm)</th>
+            <th>外径 Do<br/>(mm)</th>
+            <th>壁厚 t<br/>(mm)</th>
+            <th>屈服 σy<br/>(MPa)</th>
+            <th>设计系数 fd</th>
+            <th>瞬态系数 ft</th>
+            <th>梯度修正 g</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="toolbar">
+      <button type="button" id="btnAddSeg">添加管段</button>
+      <button type="button" class="secondary" id="btnDemoTerrain">加载折线地形示例</button>
+    </div>
+  </section>
+
+  <section class="card" id="sec-formula">
+    <h2>⑥ 本页公式</h2>
+    <p><strong>流速 / 雷诺 / 摩阻 / 坡降</strong></p>
+    <div class="formula">
+      $$ V=\frac{Q}{A},\quad
+      \mathrm{Re}=\frac{\rho V D_i}{\mu},\quad
+      f=\begin{cases}64/\mathrm{Re},&\mathrm{Re}&lt;2300\\
+      [-1.8\log_{10}((\varepsilon/D_i/3.7)^{1.11}+6.9/\mathrm{Re})]^{-2},&\mathrm{Re}\ge2300\end{cases},\quad
+      i=g_{\mathrm{fac}}\frac{f}{D_i}\frac{V^2}{2g} $$
+    </div>
+    <p><strong>HGL 推进与泵阀</strong></p>
+    <div class="formula">
+      $$ H(s+\Delta s)=H(s)-i\Delta s,\quad
+      \Delta H_{\mathrm{valve}}=k|Q|Q,\quad
+      H\leftarrow H+H_{\mathrm{pump}} $$
+    </div>
+    <p><strong>许用压力 / 许用 HGL / P↔H</strong></p>
+    <div class="formula">
+      $$ P_{\mathrm{ss}}=\frac{2 f_d(t-c_a)\sigma_y}{D_o}\ (\mathrm{MPa}),\quad
+      H_{\mathrm{allow}}=z+\frac{f_* P_{\mathrm{ss}}\,10^6}{\mathrm{SG}\,\rho_w g},\quad
+      P=\mathrm{SG}\,\rho_w g\,(H-z) $$
+    </div>
+    <p><strong>泵特性（二次近似）与工作点</strong></p>
+    <div class="formula">
+      $$ H_{\mathrm{curve}}(Q)=a_0+a_1 Q+a_2 Q^2,\quad
+      \text{工作点}=(Q_{\mathrm{op}},\,H_{\mathrm{pump}}) $$
+    </div>
+    <p><strong>泄漏示意不平衡度</strong></p>
+    <div class="formula">
+      $$ \delta_Q=\frac{|Q_{\mathrm{up}}-Q_{\mathrm{down}}|}{\max(Q_{\mathrm{up}},\varepsilon)} $$
+    </div>
+    <p><strong>罐液位报警</strong></p>
+    <div class="formula">
+      $$ L_{\mathrm{AL}}\le L\le L_{\mathrm{AH}}\ \text{正常};\quad
+      \text{越限 → 预警/报警} $$
+    </div>
+  </section>
+
+  <section class="card" id="sec-map">
+    <h2>⑦ 参数 ↔ 工艺角色（OPC 映射用）</h2>
+    <div style="overflow:auto;">
+      <table class="map-table" id="mapTable">
+        <thead>
+          <tr>
+            <th>建议映射键</th>
+            <th>工艺角色 / 节点位置</th>
+            <th>公式符号</th>
+            <th>单位</th>
+            <th>当前值</th>
+            <th>影响</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+</div>
+
+<script>
+(() => {
+  const g = 9.80665;
+  const rhoW = 1000;
+
+  const defaultState = () => ({
+    Q: 180,
+    SG: 1.35,
+    mu_cP: 3.5,
+    T_C: 25,
+    H_up: 1280,
+    z0: 1200,
+    ca: 1.0,
+    Q_down_meas: 180,   // 下游「测得」流量，泄漏示意
+    tank_level: 6.5,    // m
+    tank_LAH: 8.0,
+    tank_LAL: 2.0,
+    tank_warn_band: 0.5, // 距限值多少算预警
+    overpress_warn_ratio: 0.92, // P/Pss 预警比
+    leak_warn: 0.03,
+    leak_alarm: 0.08,
+    comm_ok: true,
+    force_leak_alarm: false,
+    pump: {
+      enabled: true, at_km: 5.0, head_m: 85,
+      a0: 120, a1: -0.05, a2: -0.0008, // H = a0 + a1 Q + a2 Q^2
+    },
+    valve: { enabled: true, at_km: 22.0, k: 2.5e-5 },
+    segments: [
+      { L: 5,  z: 1210, Di: 250, eps: 0.05, Do: 273, t: 10, Sy: 360, fd: 0.72, ft: 1.10, gfac: 1.0 },
+      { L: 8,  z: 1185, Di: 250, eps: 0.05, Do: 273, t: 10, Sy: 360, fd: 0.72, ft: 1.10, gfac: 1.05 },
+      { L: 10, z: 1160, Di: 250, eps: 0.06, Do: 273, t: 9.5, Sy: 360, fd: 0.72, ft: 1.10, gfac: 1.05 },
+      { L: 7,  z: 1145, Di: 230, eps: 0.06, Do: 254, t: 9.5, Sy: 360, fd: 0.72, ft: 1.15, gfac: 1.08 },
+      { L: 6,  z: 1130, Di: 230, eps: 0.06, Do: 254, t: 9.5, Sy: 360, fd: 0.72, ft: 1.15, gfac: 1.08 },
+    ],
+  });
+
+  let state = defaultState();
+  let alarmLog = [];
+  let lastAlarmSig = '';
+
+  function frictionFactor(Re, eD) {
+    if (Re < 1e-9) return 0;
+    if (Re < 2300) return 64 / Re;
+    const term = Math.pow(eD / 3.7, 1.11) + 6.9 / Re;
+    const invSqrt = -1.8 * Math.log10(term);
+    return 1 / (invSqrt * invSqrt);
+  }
+
+  function nearestPoint(points, km) {
+    let best = points[0], d = Infinity;
+    points.forEach(p => {
+      const dd = Math.abs(p.km - km);
+      if (dd < d) { d = dd; best = p; }
+    });
+    return best;
+  }
+
+  function compute() {
+    const Q_m3s = state.Q / 3600;
+    const mu = state.mu_cP * 1e-3;
+    const rho = state.SG * rhoW;
+    const points = [];
+    let km = 0;
+    let z = state.z0;
+    let H = state.H_up;
+    points.push({ km, z, H, Hss: null, Htr: null, P: null, Pss: null, Ptr: null, slack: false, over: false });
+
+    const events = [];
+    if (state.pump.enabled) events.push({ km: state.pump.at_km, type: 'pump' });
+    if (state.valve.enabled) events.push({ km: state.valve.at_km, type: 'valve' });
+    events.sort((a, b) => a.km - b.km);
+
+    let maxP = 0, minP = Infinity;
+    let slackCount = 0, overCount = 0, overWarnCount = 0;
+    let worstOver = null;
+    let valveDp = 0;
+
+    state.segments.forEach((seg, si) => {
+      const n = Math.max(4, Math.ceil(seg.L * 10));
+      const dL = seg.L / n;
+      const Di = seg.Di / 1000;
+      const A = Math.PI * Di * Di / 4;
+      const V = A > 0 ? Q_m3s / A : 0;
+      const Re = (mu > 0 && Di > 0) ? (rho * V * Di / mu) : 0;
+      const eD = Di > 0 ? (seg.eps / 1000) / Di : 0;
+      const f = frictionFactor(Re, eD);
+      const i = seg.gfac * (f / Di) * (V * V) / (2 * g);
+      const zStart = z;
+      const zEnd = seg.z;
+      const Pss_MPa = (2 * seg.fd * Math.max(seg.t - state.ca, 0) * seg.Sy) / seg.Do;
+      const Pss_kPa = Pss_MPa * 1000;
+      const Ptr_kPa = seg.ft * Pss_kPa;
+
+      for (let k = 1; k <= n; k++) {
+        const km2 = km + dL;
+        const z2 = zStart + (zEnd - zStart) * (k / n);
+        let H_us = H;
+        events.forEach(ev => {
+          if (ev.km > km && ev.km <= km2 + 1e-12) {
+            if (ev.type === 'pump') H += state.pump.head_m;
+            if (ev.type === 'valve') {
+              const dH = state.valve.k * Math.abs(state.Q) * state.Q;
+              valveDp = state.SG * rhoW * g * dH / 1000;
+              H -= dH;
+            }
+          }
+        });
+        H = H - i * (dL * 1000);
+        let slack = false;
+        if (H < z2) { H = z2; slack = true; slackCount++; }
+        const Hss = z2 + (Pss_MPa * 1e6) / (state.SG * rhoW * g);
+        const Htr = z2 + (seg.ft * Pss_MPa * 1e6) / (state.SG * rhoW * g);
+        const P = state.SG * rhoW * g * (H - z2) / 1000;
+        maxP = Math.max(maxP, P);
+        minP = Math.min(minP, P);
+        const over = P > Pss_kPa + 1e-6;
+        const overWarn = !over && P >= state.overpress_warn_ratio * Pss_kPa;
+        if (over) {
+          overCount++;
+          if (!worstOver || P / Pss_kPa > worstOver.ratio)
+            worstOver = { km: km2, P, Pss: Pss_kPa, ratio: P / Pss_kPa };
+        }
+        if (overWarn) overWarnCount++;
+        points.push({
+          km: km2, z: z2, H, Hss, Htr, P, Pss: Pss_kPa, Ptr: Ptr_kPa,
+          slack, over, overWarn, seg: si, V, f, Re, i, H_us,
+        });
+        km = km2;
+        z = z2;
+      }
+    });
+
+    // stations
+    const stations = [];
+    stations.push({
+      role: '上游边界', km: 0,
+      z: points[0].z, Hus: state.H_up, Hds: state.H_up,
+      Pus: null, Pds: state.SG * rhoW * g * (state.H_up - state.z0) / 1000,
+      Q: state.Q, note: 'ROLE_UPSTREAM_HEAD',
+    });
+    if (state.pump.enabled) {
+      const p = nearestPoint(points, state.pump.at_km);
+      const Hds = p.H;
+      const Hus = Hds - state.pump.head_m;
+      stations.push({
+        role: '泵站', km: state.pump.at_km, z: p.z,
+        Hus, Hds,
+        Pus: state.SG * rhoW * g * (Hus - p.z) / 1000,
+        Pds: state.SG * rhoW * g * (Hds - p.z) / 1000,
+        Q: state.Q, note: `扬程 ${state.pump.head_m} m`,
+      });
+    }
+    if (state.valve.enabled) {
+      const p = nearestPoint(points, state.valve.at_km);
+      stations.push({
+        role: '阀站', km: state.valve.at_km, z: p.z,
+        Hus: p.H + state.valve.k * Math.abs(state.Q) * state.Q,
+        Hds: p.H,
+        Pus: null, Pds: p.P,
+        Q: state.Q, note: `ΔP≈${valveDp.toFixed(0)} kPa`,
+      });
+    }
+    const end = points[points.length - 1];
+    stations.push({
+      role: '终点', km: end.km, z: end.z,
+      Hus: end.H, Hds: end.H, Pus: end.P, Pds: end.P,
+      Q: state.Q_down_meas, note: '下游测点流量可改',
+    });
+
+    // alarms evaluation
+    const dq = Math.abs(state.Q - state.Q_down_meas) / Math.max(state.Q, 1e-6);
+    const alarms = evaluateAlarms({
+      slackCount, overCount, overWarnCount, worstOver, dq, maxP, minP, end,
+    });
+
+    const H_curve = state.pump.a0 + state.pump.a1 * state.Q + state.pump.a2 * state.Q * state.Q;
+
+    return {
+      points, stations, alarms, maxP, minP: Number.isFinite(minP) ? minP : 0,
+      slackCount, overCount, valveDp, H_curve, dq, end,
+    };
+  }
+
+  function evaluateAlarms(ctx) {
+    const rows = [];
+    const levelOf = (s) => (s === 'alarm' ? 2 : s === 'warn' ? 1 : 0);
+
+    // OverPress
+    let op = 'ok';
+    if (ctx.overCount > 0) op = 'alarm';
+    else if (ctx.overWarnCount > 0) op = 'warn';
+    rows.push({
+      key: 'ROLE_ALARM_OVERPRESS',
+      cat: '超压 OverPress',
+      level: op,
+      rule: `P ≥ ${state.overpress_warn_ratio}·Pss → 预警；P > Pss → 报警`,
+      obs: ctx.worstOver
+        ? `${ctx.worstOver.km.toFixed(2)} km，P=${ctx.worstOver.P.toFixed(0)} / Pss=${ctx.worstOver.Pss.toFixed(0)} kPa`
+        : `maxP=${ctx.maxP.toFixed(0)} kPa，无超限点`,
+      msg: op === 'alarm' ? '管线超压报警' : op === 'warn' ? '管线压力接近许用（预警）' : '压力正常',
+    });
+
+    // Slack
+    const sl = ctx.slackCount > 0 ? 'alarm' : 'ok';
+    rows.push({
+      key: 'ROLE_ALARM_SLACK',
+      cat: '松弛流 Slack',
+      level: sl,
+      rule: '运行 HGL 钳制到管中心线（H≤z）→ 报警',
+      obs: `松弛点步数 ${ctx.slackCount}`,
+      msg: sl === 'alarm' ? '管线出现松弛流（可能不满管）' : '无松弛流',
+    });
+
+    // Leak
+    let lk = 'ok';
+    if (state.force_leak_alarm || ctx.dq >= state.leak_alarm) lk = 'alarm';
+    else if (ctx.dq >= state.leak_warn) lk = 'warn';
+    rows.push({
+      key: 'ROLE_ALARM_LEAK',
+      cat: '泄漏 Leak',
+      level: lk,
+      rule: `δQ≥${(state.leak_warn*100).toFixed(0)}% 预警；≥${(state.leak_alarm*100).toFixed(0)}% 或强制位 → 报警`,
+      obs: `Q_up=${state.Q}，Q_down=${state.Q_down_meas}，δQ=${(ctx.dq*100).toFixed(2)}%` +
+        (state.force_leak_alarm ? '（强制报警位）' : ''),
+      msg: lk === 'alarm' ? '泄漏报警' : lk === 'warn' ? '泄漏预警（流量不平衡）' : '流量平衡正常',
+    });
+
+    // Tank
+    const L = state.tank_level;
+    const band = state.tank_warn_band;
+    let tk = 'ok';
+    if (L >= state.tank_LAH || L <= state.tank_LAL) tk = 'alarm';
+    else if (L >= state.tank_LAH - band || L <= state.tank_LAL + band) tk = 'warn';
+    rows.push({
+      key: 'ROLE_ALARM_TANK_LEVEL',
+      cat: '罐液位 TankLevel',
+      level: tk,
+      rule: `LAL=${state.tank_LAL} / LAH=${state.tank_LAH}；距限 ${band} m 内预警`,
+      obs: `L=${L.toFixed(2)} m`,
+      msg: tk === 'alarm' ? '罐液位越限报警' : tk === 'warn' ? '罐液位接近限值（预警）' : '罐液位正常',
+    });
+
+    // Comm placeholder
+    const cm = state.comm_ok ? 'ok' : 'alarm';
+    rows.push({
+      key: 'ROLE_ALARM_COMM',
+      cat: '通信 Comm',
+      level: cm,
+      rule: 'OPC/链路断开 → 报警（本页用开关示意）',
+      obs: state.comm_ok ? '链路正常' : '链路断开',
+      msg: cm === 'alarm' ? '通信报警' : '通信正常',
+    });
+
+    const worst = rows.reduce((m, r) => Math.max(m, levelOf(r.level)), 0);
+    return { rows, worst };
+  }
+
+  // ---------- drawing helpers ----------
+  function prepareCanvas(canvas) {
+    // 按 CSS 显示尺寸重建位图，避免 sticky 图层缓存导致「算了但不刷图」
+    const rect = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    let cssW = rect.width;
+    let cssH = rect.height;
+    if (cssW < 2 || cssH < 2) {
+      // 隐藏页签时取不到尺寸，用属性兜底
+      cssW = canvas.clientWidth || 1100;
+      cssH = canvas.clientHeight || 280;
+    }
+    if (cssW < 2) cssW = 1100;
+    if (cssH < 2) cssH = 280;
+    const W = Math.max(1, Math.round(cssW * dpr));
+    const Hgt = Math.max(1, Math.round(cssH * dpr));
+    if (canvas.width !== W || canvas.height !== Hgt) {
+      canvas.width = W;
+      canvas.height = Hgt;
+    } else {
+      // 强制换新 backing store，触发可见刷新
+      canvas.width = W;
+    }
+    const ctx = canvas.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return { ctx, W: cssW, Hgt: cssH };
+  }
+
+  function setupAxes(ctx, W, Hgt, xmin, xmax, ymin, ymax, xlabel, ylabel) {
+    const pad = { l: 64, r: 24, t: 28, b: 48 };
+    const X = x => pad.l + (x - xmin) / (xmax - xmin) * (W - pad.l - pad.r);
+    const Y = y => pad.t + (ymax - y) / (ymax - ymin) * (Hgt - pad.t - pad.b);
+    ctx.clearRect(0, 0, W, Hgt);
+    ctx.strokeStyle = '#e8edf2';
+    ctx.lineWidth = 1;
+    for (let i = 0; i <= 6; i++) {
+      const y = pad.t + i * (Hgt - pad.t - pad.b) / 6;
+      ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(W - pad.r, y); ctx.stroke();
+    }
+    for (let i = 0; i <= 8; i++) {
+      const x = pad.l + i * (W - pad.l - pad.r) / 8;
+      ctx.beginPath(); ctx.moveTo(x, pad.t); ctx.lineTo(x, Hgt - pad.b); ctx.stroke();
+    }
+    ctx.fillStyle = '#334155';
+    ctx.font = '12px sans-serif';
+    ctx.fillText(xlabel, W / 2 - 20, Hgt - 14);
+    ctx.save();
+    ctx.translate(16, Hgt / 2 + 40);
+    ctx.rotate(-Math.PI / 2);
+    ctx.fillText(ylabel, 0, 0);
+    ctx.restore();
+    ctx.fillText(ymin.toFixed(0), 8, Y(ymin) + 4);
+    ctx.fillText(ymax.toFixed(0), 8, Y(ymax) + 4);
+    ctx.fillText(xmin.toFixed(1), X(xmin) - 8, Hgt - 28);
+    ctx.fillText(xmax.toFixed(1), X(xmax) - 12, Hgt - 28);
+    return { pad, X, Y };
+  }
+
+  function poly(ctx, pts, key, color, width, X, Y) {
+    ctx.beginPath();
+    let started = false;
+    pts.forEach(p => {
+      const v = p[key];
+      if (v == null || Number.isNaN(v)) return;
+      if (!started) { ctx.moveTo(X(p.km), Y(v)); started = true; }
+      else ctx.lineTo(X(p.km), Y(v));
+    });
+    ctx.strokeStyle = color;
+    ctx.lineWidth = width;
+    ctx.stroke();
+  }
+
+  function mark(ctx, km, label, color, X, pad, Hgt, xmin, xmax) {
+    if (km < xmin || km > xmax) return;
+    ctx.strokeStyle = color;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.moveTo(X(km), pad.t);
+    ctx.lineTo(X(km), Hgt - pad.b);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = color;
+    ctx.font = '12px sans-serif';
+    ctx.fillText(label, X(km) + 4, pad.t + 14);
+  }
+
+  function drawHgl(result) {
+    const canvas = document.getElementById('chartHgl');
+    const { ctx, W, Hgt } = prepareCanvas(canvas);
+    const pts = result.points;
+    if (!pts.length) return;
+    const xs = pts.map(p => p.km);
+    const ys = pts.flatMap(p => [p.z, p.H, p.Hss, p.Htr].filter(v => v != null && !Number.isNaN(v)));
+    if (!ys.length) return;
+    let xmin = Math.min(...xs), xmax = Math.max(...xs);
+    let ymin = Math.min(...ys), ymax = Math.max(...ys);
+    const ypad = (ymax - ymin) * 0.08 || 10;
+    ymin -= ypad; ymax += ypad;
+    if (xmax <= xmin) xmax = xmin + 1;
+    const { pad, X, Y } = setupAxes(ctx, W, Hgt, xmin, xmax, ymin, ymax, '里程 km', '高程 / HGL (masl)');
+    poly(ctx, pts, 'z', '#78716c', 2, X, Y);
+    poly(ctx, pts, 'Hss', '#ca8a04', 1.8, X, Y);
+    poly(ctx, pts, 'Htr', '#dc2626', 1.5, X, Y);
+    poly(ctx, pts, 'H', '#2563eb', 2.6, X, Y);
+    if (state.pump.enabled) mark(ctx, state.pump.at_km, '泵站', '#b91c1c', X, pad, Hgt, xmin, xmax);
+    if (state.valve.enabled) mark(ctx, state.valve.at_km, '阀站', '#7c3aed', X, pad, Hgt, xmin, xmax);
+  }
+
+  function drawPress(result) {
+    const canvas = document.getElementById('chartPress');
+    const { ctx, W, Hgt } = prepareCanvas(canvas);
+    const pts = result.points.filter(p => p.P != null && !Number.isNaN(p.P));
+    if (!pts.length) return;
+    const xs = pts.map(p => p.km);
+    const ys = pts.flatMap(p => [0, p.P, p.Pss, p.Ptr].filter(v => v != null && !Number.isNaN(v)));
+    let xmin = Math.min(...xs), xmax = Math.max(...xs);
+    let ymin = Math.min(...ys), ymax = Math.max(...ys);
+    const ypad = (ymax - ymin) * 0.08 || 50;
+    ymin -= ypad * 0.2; ymax += ypad;
+    if (xmax <= xmin) xmax = xmin + 1;
+    const { pad, X, Y } = setupAxes(ctx, W, Hgt, xmin, xmax, ymin, ymax, '里程 km', '压力 (kPa)');
+    ctx.strokeStyle = '#94a3b8';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(X(xmin), Y(0));
+    ctx.lineTo(X(xmax), Y(0));
+    ctx.stroke();
+    poly(ctx, pts, 'Pss', '#ca8a04', 1.8, X, Y);
+    poly(ctx, pts, 'Ptr', '#dc2626', 1.5, X, Y);
+    poly(ctx, pts, 'P', '#0d9488', 2.6, X, Y);
+    if (state.pump.enabled) mark(ctx, state.pump.at_km, '泵站', '#b91c1c', X, pad, Hgt, xmin, xmax);
+    if (state.valve.enabled) mark(ctx, state.valve.at_km, '阀站', '#7c3aed', X, pad, Hgt, xmin, xmax);
+  }
+
+  function drawPump(result) {
+    const canvas = document.getElementById('chartPump');
+    const { ctx, W, Hgt } = prepareCanvas(canvas);
+    const Qmax = Math.max(state.Q * 1.6, 50);
+    const curve = [];
+    for (let i = 0; i <= 40; i++) {
+      const Q = (Qmax * i) / 40;
+      const H = state.pump.a0 + state.pump.a1 * Q + state.pump.a2 * Q * Q;
+      curve.push({ Q, H });
+    }
+    const Hop = state.pump.enabled ? state.pump.head_m : 0;
+    const HcurveOp = result.H_curve;
+    let ymin = Math.min(0, ...curve.map(p => p.H), Hop, HcurveOp);
+    let ymax = Math.max(...curve.map(p => p.H), Hop, HcurveOp, 10);
+    if (!Number.isFinite(ymin) || !Number.isFinite(ymax)) { ymin = 0; ymax = 100; }
+    const ypad = (ymax - ymin) * 0.1 || 5;
+    ymin -= ypad * 0.2; ymax += ypad;
+    const { pad, X, Y } = setupAxes(ctx, W, Hgt, 0, Qmax, ymin, ymax, '流量 Q (m³/h)', '扬程 H (m)');
+
+    ctx.beginPath();
+    curve.forEach((p, i) => {
+      if (i === 0) ctx.moveTo(X(p.Q), Y(p.H));
+      else ctx.lineTo(X(p.Q), Y(p.H));
+    });
+    ctx.strokeStyle = '#7c3aed';
+    ctx.lineWidth = 2.4;
+    ctx.stroke();
+
+    ctx.strokeStyle = '#64748b';
+    ctx.setLineDash([5, 4]);
+    ctx.beginPath();
+    ctx.moveTo(X(0), Y(Hop));
+    ctx.lineTo(X(Qmax), Y(Hop));
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.fillStyle = '#ef4444';
+    ctx.beginPath();
+    ctx.arc(X(state.Q), Y(Hop), 6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#334155';
+    ctx.font = '12px sans-serif';
+    ctx.fillText(`工作点 (${state.Q}, ${Hop.toFixed(1)})`, X(state.Q) + 8, Y(Hop) - 8);
+
+    const mismatch = Math.abs(HcurveOp - Hop);
+    document.getElementById('kpiPump').innerHTML = `
+      <div>工况流量 <b>${state.Q}</b> m³/h</div>
+      <div>设定扬程 <b>${Hop.toFixed(1)}</b> m</div>
+      <div>曲线扬程 <b>${HcurveOp.toFixed(1)}</b> m</div>
+      <div>偏差 |H_curve−H| <b>${mismatch.toFixed(1)}</b> m</div>
+      <div>阀压降示意 <b>${result.valveDp.toFixed(0)}</b> kPa</div>
+    `;
+  }
+
+  function renderStations(result) {
+    const tb = document.querySelector('#stationTable tbody');
+    tb.innerHTML = result.stations.map(s => `
+      <tr>
+        <td>${s.role}</td>
+        <td>${s.km.toFixed(2)}</td>
+        <td>${s.z.toFixed(1)}</td>
+        <td>${s.Hus != null ? s.Hus.toFixed(1) : '—'}</td>
+        <td>${s.Hds != null ? s.Hds.toFixed(1) : '—'}</td>
+        <td>${s.Pus != null ? s.Pus.toFixed(0) : '—'}</td>
+        <td>${s.Pds != null ? s.Pds.toFixed(0) : '—'}</td>
+        <td>${s.Q}</td>
+        <td>${s.note}</td>
+      </tr>`).join('');
+
+    const end = result.end;
+    document.getElementById('kpi').innerHTML = `
+      <div>管线长 <b>${end.km.toFixed(2)}</b> km</div>
+      <div>终点 HGL <b>${end.H.toFixed(1)}</b> masl</div>
+      <div>终点压力 <b>${end.P.toFixed(0)}</b> kPa</div>
+      <div>沿线 maxP <b>${result.maxP.toFixed(0)}</b> kPa</div>
+      <div>沿线 minP <b>${result.minP.toFixed(0)}</b> kPa</div>
+      <div>松弛步数 <b>${result.slackCount}</b></div>
+      <div>超压步数 <b>${result.overCount}</b></div>
+    `;
+  }
+
+  function badge(level) {
+    if (level === 'alarm') return '<span class="badge alarm">报警</span>';
+    if (level === 'warn') return '<span class="badge warn">预警</span>';
+    return '<span class="badge ok">正常</span>';
+  }
+
+  function renderAlarms(result) {
+    const { rows } = result.alarms;
+    const grid = document.getElementById('alarmStatus');
+    grid.innerHTML = rows.map(r => `
+      <div class="status-card level-${r.level}">
+        <div class="title">${r.cat}</div>
+        <div class="val">${badge(r.level)} ${r.msg}</div>
+      </div>`).join('');
+
+    const tb = document.querySelector('#alarmTable tbody');
+    tb.innerHTML = rows.map(r => `
+      <tr>
+        <td><code>${r.key}</code></td>
+        <td>${r.cat}</td>
+        <td>${badge(r.level)}</td>
+        <td>${r.rule}</td>
+        <td>${r.obs}</td>
+        <td>${r.msg}</td>
+      </tr>`).join('');
+
+    // log edges
+    const sig = rows.map(r => r.key + ':' + r.level).join('|');
+    if (sig !== lastAlarmSig) {
+      const ts = new Date().toLocaleTimeString();
+      rows.forEach(r => {
+        if (r.level === 'ok') return;
+        const cls = r.level === 'alarm' ? 'L-alarm' : 'L-warn';
+        alarmLog.unshift({ ts, cls, text: `[${r.level === 'alarm' ? '报警' : '预警'}] ${r.cat} — ${r.msg} | ${r.obs}` });
+      });
+      if (!rows.some(r => r.level !== 'ok')) {
+        alarmLog.unshift({ ts, cls: 'L-ok', text: '[恢复] 全部告警通道正常' });
+      }
+      lastAlarmSig = sig;
+      if (alarmLog.length > 80) alarmLog.length = 80;
+    }
+    renderLog();
+  }
+
+  function renderLog() {
+    const el = document.getElementById('alarmLog');
+    if (!alarmLog.length) {
+      el.innerHTML = '<div class="L-info">尚无事件。改流量/扬程/下游测流/罐液位可触发。</div>';
+      return;
+    }
+    el.innerHTML = alarmLog.map(e => `<div class="${e.cls}">${e.ts}  ${e.text}</div>`).join('');
+  }
+
+  // ---------- UI fields ----------
+  function field(container, key, label, role, unit, mapKey, step = 'any') {
+    const wrap = document.createElement('label');
+    wrap.className = 'field';
+    wrap.innerHTML = `
+      <span class="name">${label}</span>
+      <span class="role">角色：${role} · 映射键 <code>${mapKey}</code></span>
+      <input type="number" step="${step}" data-key="${key}"/>
+      <span class="unit">${unit}</span>`;
+    container.appendChild(wrap);
+    const input = wrap.querySelector('input');
+    const get = () => {
+      const parts = key.split('.');
+      let o = state;
+      for (let i = 0; i < parts.length - 1; i++) o = o[parts[i]];
+      return o[parts[parts.length - 1]];
+    };
+    const set = (v) => {
+      const parts = key.split('.');
+      let o = state;
+      for (let i = 0; i < parts.length - 1; i++) o = o[parts[i]];
+      o[parts[parts.length - 1]] = v;
+    };
+    input.value = get();
+    input.addEventListener('input', () => {
+      set(parseFloat(input.value));
+      refresh();
+    });
+  }
+
+  function boolField(container, key, label, role, mapKey) {
+    const wrap = document.createElement('label');
+    wrap.className = 'field';
+    wrap.innerHTML = `
+      <span class="name">${label}</span>
+      <span class="role">角色：${role} · 映射键 <code>${mapKey}</code></span>
+      <select><option value="1">是/正常</option><option value="0">否/断开</option></select>
+      <span class="unit"></span>`;
+    container.appendChild(wrap);
+    const sel = wrap.querySelector('select');
+    const get = () => {
+      const parts = key.split('.');
+      let o = state;
+      for (let i = 0; i < parts.length - 1; i++) o = o[parts[i]];
+      return o[parts[parts.length - 1]];
+    };
+    const set = (v) => {
+      const parts = key.split('.');
+      let o = state;
+      for (let i = 0; i < parts.length - 1; i++) o = o[parts[i]];
+      o[parts[parts.length - 1]] = v;
+    };
+    sel.value = get() ? '1' : '0';
+    sel.onchange = (e) => {
+      set(e.target.value === '1');
+      refresh();
+    };
+  }
+
+  function buildGlobalFields() {
+    const el = document.getElementById('globals');
+    el.innerHTML = '';
+    field(el, 'Q', '上游/干线流量 Q', '干线体积流量', 'm³/h', 'ROLE_MAINLINE_FLOW', '1');
+    field(el, 'Q_down_meas', '下游测得流量 Q_down', '终点流量计读数（泄漏示意）', 'm³/h', 'ROLE_DOWNSTREAM_FLOW_MEAS', '1');
+    field(el, 'SG', '流体比重 SG', '管中比重', '—', 'ROLE_FLUID_SG', '0.01');
+    field(el, 'mu_cP', '动力粘度 μ', '管中粘度', 'cP', 'ROLE_FLUID_VISCOSITY', '0.1');
+    field(el, 'T_C', '温度 T', '操作温度', '°C', 'ROLE_FLUID_TEMP', '1');
+    field(el, 'H_up', '上游边界水头 H_up', '上游边界水头', 'masl', 'ROLE_UPSTREAM_HEAD', '0.1');
+    field(el, 'z0', '起点管中心高程 z0', '起点高程', 'masl', 'ROLE_PIPE_ELEV_START', '0.1');
+    field(el, 'ca', '腐蚀裕量 ca', '腐蚀预留', 'mm', 'ROLE_CORROSION_ALLOWANCE', '0.1');
+  }
+
+  function buildEquipFields() {
+    const el = document.getElementById('equipment');
+    el.innerHTML = '';
+    boolField(el, 'pump.enabled', '启用泵站', '加压泵站', 'ROLE_PUMP_ENABLE');
+    field(el, 'pump.at_km', '泵站里程', '泵站位置', 'km', 'ROLE_PUMP_STATION_KM', '0.1');
+    field(el, 'pump.head_m', '泵扬程（工况）', '当前总扬程', 'm', 'ROLE_PUMP_HEAD', '0.5');
+    field(el, 'pump.a0', '泵曲线 a0', 'H=a0+a1Q+a2Q²', 'm', 'ROLE_PUMP_CURVE_A0', '0.1');
+    field(el, 'pump.a1', '泵曲线 a1', '线性项', 'm·h/m³', 'ROLE_PUMP_CURVE_A1', '0.001');
+    field(el, 'pump.a2', '泵曲线 a2', '二次项', 'm·h²/m⁶', 'ROLE_PUMP_CURVE_A2', '1e-5');
+
+    boolField(el, 'valve.enabled', '启用阀站', '阀站', 'ROLE_VALVE_ENABLE');
+    field(el, 'valve.at_km', '阀站里程', '阀站位置', 'km', 'ROLE_VALVE_STATION_KM', '0.1');
+    field(el, 'valve.k', '阀阻力 k', 'ΔH=k|Q|Q', '—', 'ROLE_VALVE_K', '1e-7');
+
+    field(el, 'tank_level', '罐液位 L', '调蓄罐液位', 'm', 'ROLE_TANK_LEVEL', '0.1');
+    field(el, 'tank_LAH', '高液位报警 LAH', '罐高报', 'm', 'ROLE_TANK_LAH', '0.1');
+    field(el, 'tank_LAL', '低液位报警 LAL', '罐低报', 'm', 'ROLE_TANK_LAL', '0.1');
+    field(el, 'tank_warn_band', '液位预警带宽', '距限值预警带', 'm', 'ROLE_TANK_WARN_BAND', '0.1');
+    field(el, 'overpress_warn_ratio', '超压预警比 P/Pss', '接近许用即预警', '—', 'ROLE_OVERPRESS_WARN_RATIO', '0.01');
+    field(el, 'leak_warn', '泄漏预警阈值 δQ', '流量不平衡预警', '—', 'ROLE_LEAK_WARN_RATIO', '0.01');
+    field(el, 'leak_alarm', '泄漏报警阈值 δQ', '流量不平衡报警', '—', 'ROLE_LEAK_ALARM_RATIO', '0.01');
+    boolField(el, 'comm_ok', '通信正常', 'OPC/链路状态占位', 'ROLE_COMM_OK');
+  }
+
+  function renderSegTable() {
+    const tb = document.querySelector('#segTable tbody');
+    tb.innerHTML = '';
+    state.segments.forEach((seg, idx) => {
+      const tr = document.createElement('tr');
+      const cells = [
+        ['L', seg.L], ['z', seg.z], ['Di', seg.Di], ['eps', seg.eps],
+        ['Do', seg.Do], ['t', seg.t], ['Sy', seg.Sy], ['fd', seg.fd],
+        ['ft', seg.ft], ['gfac', seg.gfac],
+      ];
+      tr.innerHTML = `<td>${idx + 1}</td>` + cells.map(([k, v]) =>
+        `<td><input data-i="${idx}" data-k="${k}" type="number" step="any" value="${v}"/></td>`
+      ).join('') + `<td><button type="button" class="secondary" data-del="${idx}">删</button></td>`;
+      tb.appendChild(tr);
+    });
+    tb.querySelectorAll('input').forEach(inp => {
+      inp.addEventListener('input', () => {
+        state.segments[+inp.dataset.i][inp.dataset.k] = parseFloat(inp.value);
+        refresh(false);
+      });
+    });
+    tb.querySelectorAll('[data-del]').forEach(btn => {
+      btn.onclick = () => {
+        if (state.segments.length <= 1) return;
+        state.segments.splice(+btn.dataset.del, 1);
+        renderSegTable();
+        refresh();
+      };
+    });
+  }
+
+  function mappingRows(result) {
+    const end = result.end;
+    return [
+      ['ROLE_MAINLINE_FLOW', '干线上游流量', 'Q', 'm³/h', state.Q, 'HGL/压力/工作点'],
+      ['ROLE_DOWNSTREAM_FLOW_MEAS', '下游流量计', 'Q_down', 'm³/h', state.Q_down_meas, '泄漏预警'],
+      ['ROLE_FLUID_SG', '管中比重', 'SG', '—', state.SG, 'P↔H / 许用'],
+      ['ROLE_UPSTREAM_HEAD', '上游边界水头', 'H_up', 'masl', state.H_up, 'HGL 起点'],
+      ['ROLE_PUMP_HEAD', '泵扬程', 'H_pump', 'm', state.pump.head_m, 'HGL 台阶 / 工作点'],
+      ['ROLE_PUMP_CURVE_A0', '泵曲线常数项', 'a0', 'm', state.pump.a0, 'Q–H 图'],
+      ['ROLE_VALVE_K', '阀阻力', 'k', '—', state.valve.k, 'HGL / 阀压降'],
+      ['ROLE_TANK_LEVEL', '罐液位', 'L', 'm', state.tank_level, '液位报警'],
+      ['ROLE_TANK_LAH', '高液位限', 'LAH', 'm', state.tank_LAH, '液位报警'],
+      ['ROLE_TANK_LAL', '低液位限', 'LAL', 'm', state.tank_LAL, '液位报警'],
+      ['ROLE_OUT_HGL_PROFILE', '运行 HGL 剖面', 'H(s)', 'masl', end.H.toFixed(2)+'（终点）', 'HGL 图'],
+      ['ROLE_OUT_LINE_PRESSURE', '运行压力剖面', 'P(s)', 'kPa', end.P.toFixed(0)+'（终点）', '压力图'],
+      ['ROLE_OUT_ALLOW_P_SS', '稳态许用压力', 'P_ss', 'kPa', '沿线', '压力黄线 / 超压'],
+      ['ROLE_OUT_PUMP_POINT', '泵工作点', '(Q,H)', 'm³/h,m', `(${state.Q}, ${state.pump.head_m})`, '泵图'],
+      ['ROLE_OUT_MAX_PRESS', '沿线最大压力', 'maxP', 'kPa', result.maxP.toFixed(0), 'KPI / 报警'],
+      ['ROLE_ALARM_OVERPRESS', '超压报警位', '—', 'bool', result.alarms.rows.find(r=>r.key==='ROLE_ALARM_OVERPRESS').level, '报警面板'],
+      ['ROLE_ALARM_SLACK', '松弛流报警位', '—', 'bool', result.alarms.rows.find(r=>r.key==='ROLE_ALARM_SLACK').level, '报警面板'],
+      ['ROLE_ALARM_LEAK', '泄漏报警位', '—', 'bool', result.alarms.rows.find(r=>r.key==='ROLE_ALARM_LEAK').level, '报警面板'],
+      ['ROLE_ALARM_TANK_LEVEL', '罐液位报警位', '—', 'bool', result.alarms.rows.find(r=>r.key==='ROLE_ALARM_TANK_LEVEL').level, '报警面板'],
+      ['ROLE_ALARM_COMM', '通信报警位', '—', 'bool', result.alarms.rows.find(r=>r.key==='ROLE_ALARM_COMM').level, '报警面板'],
+      ['ROLE_COMM_OK', '通信链路状态', '—', 'bool', state.comm_ok, '通信报警'],
+    ];
+  }
+
+  function renderMap(result) {
+    const tb = document.querySelector('#mapTable tbody');
+    tb.innerHTML = mappingRows(result).map(r =>
+      `<tr><td><code>${r[0]}</code></td><td>${r[1]}</td><td>$${r[2]}$</td><td>${r[3]}</td><td>${r[4]}</td><td>${r[5]}</td></tr>`
+    ).join('');
+    if (window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise([tb]).catch(() => {});
+  }
+
+  function refresh() {
+    const result = compute();
+    lastResult = result;
+    drawHgl(result);
+    drawPress(result);
+    drawPump(result);
+    renderStations(result);
+    renderAlarms(result);
+    renderMap(result);
+    return result;
+  }
+
+  let lastResult = null;
+
+  // tabs
+  document.querySelectorAll('#chartTabs button').forEach(btn => {
+    btn.onclick = () => {
+      document.querySelectorAll('#chartTabs button').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('#sec-charts .panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(btn.dataset.panel).classList.add('active');
+      // 页签从 display:none 显示后需按真实尺寸重画
+      requestAnimationFrame(() => {
+        if (!lastResult) lastResult = compute();
+        drawHgl(lastResult);
+        drawPress(lastResult);
+        drawPump(lastResult);
+      });
+    };
+  });
+
+  document.getElementById('btnRecalc').onclick = () => refresh();
+  document.getElementById('btnReset').onclick = () => {
+    state = defaultState();
+    lastAlarmSig = '';
+    buildGlobalFields();
+    buildEquipFields();
+    renderSegTable();
+    refresh();
+  };
+  document.getElementById('btnClearLog').onclick = () => {
+    alarmLog = [];
+    renderLog();
+  };
+  document.getElementById('btnForceLeak').onclick = () => {
+    state.force_leak_alarm = true;
+    refresh();
+    setTimeout(() => { state.force_leak_alarm = false; refresh(); }, 800);
+  };
+  document.getElementById('btnAddSeg').onclick = () => {
+    const last = state.segments[state.segments.length - 1];
+    state.segments.push({
+      L: 5, z: last.z - 10, Di: last.Di, eps: last.eps, Do: last.Do,
+      t: last.t, Sy: last.Sy, fd: last.fd, ft: last.ft, gfac: last.gfac,
+    });
+    renderSegTable();
+    refresh();
+  };
+  document.getElementById('btnDemoTerrain').onclick = () => {
+    state.z0 = 1250;
+    state.H_up = 1330;
+    state.segments = [
+      { L: 4, z: 1265, Di: 260, eps: 0.045, Do: 286, t: 11, Sy: 415, fd: 0.72, ft: 1.1, gfac: 1 },
+      { L: 6, z: 1240, Di: 260, eps: 0.045, Do: 286, t: 11, Sy: 415, fd: 0.72, ft: 1.1, gfac: 1.05 },
+      { L: 9, z: 1195, Di: 250, eps: 0.05, Do: 273, t: 10, Sy: 360, fd: 0.72, ft: 1.1, gfac: 1.05 },
+      { L: 8, z: 1170, Di: 250, eps: 0.05, Do: 273, t: 10, Sy: 360, fd: 0.72, ft: 1.15, gfac: 1.08 },
+      { L: 7, z: 1155, Di: 240, eps: 0.055, Do: 267, t: 10, Sy: 360, fd: 0.72, ft: 1.15, gfac: 1.08 },
+      { L: 5, z: 1140, Di: 240, eps: 0.055, Do: 267, t: 9.5, Sy: 360, fd: 0.72, ft: 1.15, gfac: 1.1 },
+    ];
+    state.pump.at_km = 4.0;
+    state.valve.at_km = 19.0;
+    buildGlobalFields();
+    buildEquipFields();
+    renderSegTable();
+    refresh();
+  };
+
+  buildGlobalFields();
+  buildEquipFields();
+  renderSegTable();
+  lastResult = refresh();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>管道重建规格 · 静态交付</title>
+<style>
+:root {
+  --accent: #1F4E79;
+  --bg: #f3f5f8;
+  --card: #fff;
+  --ink: #1a1a1a;
+  --muted: #5a6570;
+  --line: #d8dee6;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: "PingFang SC", "Noto Sans SC", "Segoe UI", sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  line-height: 1.65;
+}
+.wrap {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 3rem 1rem 4rem;
+}
+h1 {
+  margin: 0 0 1.2rem;
+  font-size: 1.5rem;
+  color: var(--accent);
+  border-bottom: 3px solid var(--accent);
+  padding-bottom: .45rem;
+}
+a.card {
+  display: block;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 1rem 1.1rem;
+  margin: 0 0 .9rem;
+  text-decoration: none;
+  color: inherit;
+  box-shadow: 0 1px 3px rgba(0,0,0,.04);
+}
+a.card:hover { border-color: var(--accent); }
+a.card h2 {
+  margin: 0 0 .3rem;
+  font-size: 1.02rem;
+  color: var(--accent);
+}
+a.card p {
+  margin: 0;
+  font-size: .88rem;
+  color: var(--muted);
+}
+.note {
+  margin-top: 1.4rem;
+  font-size: .82rem;
+  color: var(--muted);
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>管道重建规格 · 静态交付</h1>
+  <a class="card" href="chapter9-formula-sources.html">
+    <h2>第9章 · 计算项公式与数据来源</h2>
+    <p>计算项公式清单，含目录导航、公式与数据来源表。</p>
+  </a>
+  <a class="card" href="hgl-steady-state.html">
+    <h2>稳态总览 · 图与预警报警（可调参）</h2>
+    <p>HGL、压力、泵工作点与预警报警图表，参数可在页面内实时调节。</p>
+  </a>
+  <p class="note">公式渲染依赖 MathJax CDN，打开页面需联网。</p>
+</div>
+</body>
+</html>
