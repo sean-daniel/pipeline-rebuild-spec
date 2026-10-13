@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>规格书第9章 · 图与预警报警（本地可调参）</title>
+<script>
+window.MathJax = { tex: { inlineMath: [['$','$']], displayMath: [['$$','$$']] }, svg: { fontCache: 'global' } };
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+<style>
+:root {
+  --bg:#f3f5f8; --card:#fff; --ink:#1a1a1a; --muted:#5a6570; --line:#d8dee6; --accent:#1F4E79;
+  --hgl:#2563eb; --terrain:#78716c; --allow:#ca8a04; --tr:#dc2626; --press:#0d9488; --vc:#7c3aed;
+  --blue:#2563eb; --orange:#ea580c; --red:#b91c1c; --ok:#15803d;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:"PingFang SC","Noto Sans SC","Segoe UI",sans-serif;background:var(--bg);color:var(--ink);line-height:1.5}
+.wrap{max-width:1220px;margin:0 auto;padding:.5rem 1rem 3rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:1rem;margin:1rem 0;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.card h2{margin:0 0 .6rem;font-size:1.02rem;color:var(--accent);border-bottom:1px solid var(--line);padding-bottom:.35rem}
+.card h3{margin:.75rem 0 .4rem;font-size:.92rem;color:#334155}
+#sec-charts{position:sticky;top:0;z-index:50;margin-top:0;overflow:visible;background:var(--card);box-shadow:0 8px 20px rgba(15,23,42,.14);border-radius:0 0 10px 10px;padding:.65rem .85rem .75rem}
+#sec-charts h2{margin-bottom:.4rem;font-size:.98rem}
+.tabs{display:flex;flex-wrap:wrap;gap:.35rem;margin:0 0 .45rem}
+.tabs button{border:0;border-radius:6px;padding:.35rem .65rem;cursor:pointer;background:#e2e8f0;color:#1e293b;font-size:.8rem}
+.tabs button.active{background:var(--accent);color:#fff}
+.panel{display:none}.panel.active{display:block}
+canvas{width:100%;height:270px;display:block;background:#fafbfc;border:1px solid var(--line);border-radius:8px}
+.legend{display:flex;flex-wrap:wrap;gap:.45rem 1rem;font-size:.78rem;margin-top:.35rem}
+.legend span{display:inline-flex;align-items:center;gap:.3rem}
+.sw{width:16px;height:3px;border-radius:2px;display:inline-block}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:960px){.grid2{grid-template-columns:1fr}}
+label.field{display:grid;grid-template-columns:1fr auto;gap:.1rem .45rem;font-size:.8rem;margin-bottom:.45rem;align-items:center}
+label.field .name{color:var(--muted);grid-column:1/-1}
+label.field .role{grid-column:1/-1;font-size:.7rem;color:#8a5a00;background:#fff8e7;border-radius:4px;padding:.08rem .3rem}
+label.field input,label.field select{width:100%;padding:.3rem .4rem;border:1px solid var(--line);border-radius:6px;font-size:.85rem}
+label.field .unit{color:var(--muted);font-size:.72rem;min-width:2.4rem}
+.toolbar{display:flex;flex-wrap:wrap;gap:.45rem;margin-top:.45rem}
+button{border:0;border-radius:6px;padding:.4rem .75rem;cursor:pointer;background:var(--accent);color:#fff;font-size:.82rem}
+button.secondary{background:#64748b}button.warn{background:#b45309}
+.note{font-size:.8rem;color:var(--muted)}
+.kpi{display:flex;flex-wrap:wrap;gap:.45rem;margin-top:.4rem}
+.kpi div{background:#eef4fa;border-radius:8px;padding:.35rem .6rem;font-size:.78rem}
+.kpi b{color:var(--accent)}
+.badge{display:inline-block;border-radius:999px;padding:.08rem .45rem;font-size:.72rem;font-weight:650;color:#fff}
+.badge.ok{background:var(--ok)}.badge.L1{background:var(--blue)}.badge.L2{background:var(--orange)}.badge.L3{background:var(--red)}
+.status-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:.55rem}
+.status-card{border:1px solid var(--line);border-radius:8px;padding:.55rem .65rem;background:#f8fafc;border-left:4px solid #94a3b8}
+.status-card.L1{border-left-color:var(--blue);background:#eff6ff}
+.status-card.L2{border-left-color:var(--orange);background:#fff7ed}
+.status-card.L3{border-left-color:var(--red);background:#fff1f2}
+.status-card .t{font-size:.74rem;color:var(--muted)}
+.status-card .v{font-size:.88rem;font-weight:600;margin-top:.15rem}
+.logbox{max-height:200px;overflow:auto;font-size:.76rem;background:#0f172a;color:#e2e8f0;border-radius:8px;padding:.55rem .7rem;font-family:ui-monospace,Menlo,Consolas,monospace}
+.logbox .L1{color:#93c5fd}.logbox .L2{color:#fdba74}.logbox .L3{color:#f87171}.logbox .ok{color:#86efac}.logbox .info{color:#94a3b8}
+table.data{width:100%;border-collapse:collapse;font-size:.76rem}
+table.data th,table.data td{border:1px solid var(--line);padding:.3rem .35rem}
+table.data th{background:#1F4E79;color:#fff;text-align:left;position:sticky;top:0}
+table.data tr:nth-child(even){background:#f8fafc}
+.formula{background:#f4f7fb;border-left:4px solid var(--accent);padding:.65rem .85rem;margin:.5rem 0;overflow-x:auto}
+code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.8em;background:#eef2f7;padding:.05rem .28rem;border-radius:3px}
+.seg-table input{width:100%;min-width:3.2rem;padding:.18rem;border:1px solid #e5e7eb;border-radius:4px}
+.model-svg{width:100%;height:160px;background:#f8fafc;border:1px solid var(--line);border-radius:8px}
+.flash{animation:blink 1s infinite}
+@keyframes blink{50%{opacity:.35}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<section class="card" id="sec-charts">
+  <h2>① 规格呈现 · 图（吸顶）</h2>
+  <div class="tabs" id="chartTabs">
+    <button type="button" class="active" data-panel="p-hgl">水力坡降线</button>
+    <button type="button" data-panel="p-press">管道承压线</button>
+    <button type="button" data-panel="p-vel">沿程流速</button>
+    <button type="button" data-panel="p-tr">瞬态压力包络</button>
+    <button type="button" data-panel="p-model">纵断面模型</button>
+    <button type="button" data-panel="p-pts">关键4点压力</button>
+    <button type="button" data-panel="p-table">计算表</button>
+    <button type="button" data-panel="p-wear">磨蚀/预测</button>
+  </div>
+
+  <div class="panel active" id="p-hgl">
+    <canvas id="cHgl" width="1100" height="270"></canvas>
+    <div class="legend">
+      <span><i class="sw" style="background:var(--terrain)"></i>管中心线高程</span>
+      <span><i class="sw" style="background:var(--hgl)"></i>运行水力坡降线</span>
+      <span><i class="sw" style="background:var(--allow)"></i>稳态许用 HGL</span>
+      <span><i class="sw" style="background:var(--tr)"></i>瞬态许用 HGL</span>
+    </div>
+  </div>
+  <div class="panel" id="p-press">
+    <canvas id="cPress" width="1100" height="270"></canvas>
+    <div class="legend">
+      <span><i class="sw" style="background:var(--press)"></i>运行压力</span>
+      <span><i class="sw" style="background:var(--allow)"></i>MAOP/稳态许用</span>
+      <span><i class="sw" style="background:var(--tr)"></i>瞬态许用</span>
+      <span><i class="sw" style="background:#94a3b8"></i>零压</span>
+    </div>
+  </div>
+  <div class="panel" id="p-vel">
+    <canvas id="cVel" width="1100" height="270"></canvas>
+    <div class="legend">
+      <span><i class="sw" style="background:var(--hgl)"></i>实际流速 V</span>
+      <span><i class="sw" style="background:var(--vc)"></i>临界流速 Vc（Wasp/Durand）</span>
+      <span><i class="sw" style="background:var(--allow)"></i>1.10·Vc 设计下限</span>
+      <span><i class="sw" style="background:var(--orange)"></i>1.0·Vc</span>
+      <span><i class="sw" style="background:var(--red)"></i>0.9·Vc</span>
+    </div>
+  </div>
+  <div class="panel" id="p-tr">
+    <canvas id="cTr" width="1100" height="270"></canvas>
+    <div class="legend">
+      <span><i class="sw" style="background:var(--press)"></i>稳态运行压力</span>
+      <span><i class="sw" style="background:var(--tr)"></i>瞬态最大（Joukowsky 包络示意）</span>
+      <span><i class="sw" style="background:#0284c7"></i>瞬态最小</span>
+      <span><i class="sw" style="background:var(--allow)"></i>MAOP</span>
+    </div>
+    <p class="note">关阀 ΔV 可调；ΔP=ρ a ΔV（附录E/Joukowsky 教学近似）。负压点与超限点在图上标叉。</p>
+  </div>
+  <div class="panel" id="p-model">
+    <svg class="model-svg" id="modelSvg" viewBox="0 0 1100 160"></svg>
+    <p class="note">规格 9.1.1 无三维时用纵断面替代；报警点闪烁标注里程。</p>
+    <div class="kpi" id="kpiModel"></div>
+  </div>
+  <div class="panel" id="p-pts">
+    <canvas id="cPts" width="1100" height="270"></canvas>
+    <div class="legend">
+      <span><i class="sw" style="background:#2563eb"></i>隔膜泵后</span>
+      <span><i class="sw" style="background:#16a34a"></i>线路最高点</span>
+      <span><i class="sw" style="background:#ea580c"></i>消能站进站</span>
+      <span><i class="sw" style="background:#7c3aed"></i>消能站出站</span>
+      <span><i class="sw" style="background:#94a3b8"></i>历史分布带（示意）</span>
+    </div>
+  </div>
+  <div class="panel" id="p-table">
+    <div style="max-height:240px;overflow:auto">
+      <table class="data" id="calcTable"><thead><tr>
+        <th>里程km</th><th>高程</th><th>HGL</th><th>P稳态kPa</th><th>Pmax</th><th>Pmin</th><th>V m/s</th><th>Vc</th><th>i</th><th>累计摩阻m</th>
+      </tr></thead><tbody></tbody></table>
+    </div>
+  </div>
+  <div class="panel" id="p-wear">
+    <canvas id="cWear" width="1100" height="270"></canvas>
+    <div class="legend">
+      <span><i class="sw" style="background:#0d9488"></i>壁厚历史拟合</span>
+      <span><i class="sw" style="background:#2563eb"></i>预测趋势</span>
+      <span><i class="sw" style="background:var(--red)"></i>极限壁厚</span>
+    </div>
+    <div class="kpi" id="kpiWear"></div>
+  </div>
+  <div class="kpi" id="kpiMain"></div>
+</section>
+
+<section class="card" id="sec-alarms">
+  <h2>② 预警 / 报警（蓝橙红 · 对齐规格 9.6 / 9.7）</h2>
+  <p class="note">蓝色一级=关注预警；橙色二级=风险；红色三级=紧急。9.6 为事后诊断报警；9.7 为事前智能预警示意。</p>
+  <div class="status-grid" id="alarmStatus"></div>
+  <h3>活跃报警日志（右侧栏能力示意）</h3>
+  <div class="logbox" id="alarmLog"></div>
+  <div class="toolbar">
+    <button type="button" class="secondary" id="btnAck">确认最高级报警</button>
+    <button type="button" class="secondary" id="btnClearLog">清空日志</button>
+    <button type="button" class="warn" id="btnSimLeak">模拟泄漏边沿</button>
+  </div>
+  <h3>分级判定明细</h3>
+  <div style="overflow:auto">
+    <table class="data" id="alarmTable"><thead><tr>
+      <th>映射键</th><th>类型</th><th>等级</th><th>触发条件（规格）</th><th>当前观测</th><th>建议处置（摘要）</th>
+    </tr></thead><tbody></tbody></table>
+  </div>
+</section>
+
+<div class="grid2" id="sec-params">
+  <section class="card">
+    <h2>③ 全局工况</h2>
+    <div id="globals"></div>
+    <div class="toolbar">
+      <button type="button" id="btnRecalc">重新计算</button>
+      <button type="button" class="secondary" id="btnReset">恢复默认</button>
+    </div>
+  </section>
+  <section class="card">
+    <h2>④ 设备 / 阈值 / 示意测点</h2>
+    <div id="equipment"></div>
+  </section>
+</div>
+
+<section class="card">
+  <h2>⑤ 管段表</h2>
+  <div style="overflow:auto;max-height:260px">
+    <table class="data seg-table" id="segTable"><thead><tr>
+      <th>#</th><th>L km</th><th>z终点</th><th>Di mm</th><th>ε mm</th><th>Do</th><th>t</th><th>σy</th><th>fd</th><th>ft</th><th>gfac</th><th></th>
+    </tr></thead><tbody></tbody></table>
+  </div>
+  <div class="toolbar">
+    <button type="button" id="btnAddSeg">加段</button>
+    <button type="button" class="secondary" id="btnDemo">折线地形示例</button>
+  </div>
+</section>
+
+<section class="card">
+  <h2>⑥ 公式来源（手册 / 设计标准 / 公开文献）</h2>
+  <p><strong>流速 · 摩阻 · HGL</strong>（手册 A-06/A-07/A-09/A-11/A-43）</p>
+  <div class="formula">$$ V=\frac{Q}{A},\quad f=\begin{cases}64/\mathrm{Re}&\mathrm{Re}&lt;2300\\[-1.8\log_{10}((\varepsilon/D/3.7)^{1.11}+6.9/\mathrm{Re})]^{-2}&\mathrm{Re}\ge2300\end{cases},\quad i=g_{\mathrm{fac}}\frac{f}{D}\frac{V^2}{2g} $$</div>
+  <div class="formula">$$ H(s+\Delta s)=H(s)-i\Delta s;\quad P=\mathrm{SG}\,\rho_w g(H-z) $$</div>
+  <p><strong>许用 / MAOP</strong>（手册 A-45/A-46/A-47）</p>
+  <div class="formula">$$ P_{\mathrm{ss}}=\frac{2 f_d(t-c_a)\sigma_y}{D_o},\quad P_{\mathrm{MAOP}}=\min(P_{\mathrm{ss}},P_{\mathrm{flange}}),\quad H_{\mathrm{allow}}=z+\frac{P}{\mathrm{SG}\,\rho_w g} $$</div>
+  <p><strong>临界流速</strong>（设计标准表4.2.2 Wasp；设计流速≥1.10Vc）</p>
+  <div class="formula">$$ V_c=3.113\,C_V^{0.1858}\sqrt{2gD\frac{\rho_s-\rho_m}{\rho_m}}\left(\frac{d_{85}}{D}\right)^{1/6} $$</div>
+  <p><strong>加速流判据</strong>（设计标准 4.4.1）</p>
+  <div class="formula">$$ \left(Z_1+\frac{P_1}{\rho g}\right)-\left(Z_2+\frac{P_2}{\rho g}\right)&gt;iL \Rightarrow \text{存在加速流/不满流风险} $$</div>
+  <p><strong>水击 Joukowsky 示意</strong>（附录E/经典；本页教学包络）</p>
+  <div class="formula">$$ \Delta P=\rho\,a\,\Delta V,\quad P_{\max}=P+|\Delta P|,\quad P_{\min}=P-|\Delta P| $$</div>
+  <p><strong>泄漏物料平衡 · 堵塞梯度比 · 磨蚀</strong></p>
+  <div class="formula">$$ \delta_Q=\frac{|Q_{\mathrm{in}}-Q_{\mathrm{out}}|}{Q_{\mathrm{in}}},\quad \mathrm{ratio}=\frac{i_{\mathrm{obs}}}{i_{\mathrm{exp}}},\quad \eta_t=\frac{t_0-t}{t_0} $$</div>
+  <p class="note">本页为规格呈现+可调教学模型，非现场 OPC/完整 RTTM/光纤实现。</p>
+</section>
+
+<section class="card">
+  <h2>⑦ ROLE 映射键（当前值）</h2>
+  <div style="overflow:auto"><table class="data" id="mapTable"><thead><tr>
+    <th>映射键</th><th>角色</th><th>单位</th><th>当前值</th><th>影响</th>
+  </tr></thead><tbody></tbody></table></div>
+</section>
+
+</div>
+
+<script>
+(() => {
+const g=9.80665, rhoW=1000;
+const defaultState=()=>({
+  Q:180, Q_out:180, SG:1.35, mu_cP:3.5, H_up:1280, z0:1200, ca:1.0,
+  Cv:0.25, Ss:2.65, d85_mm:0.25, FL:1.0,
+  flange_MPa:8.0, deltaV:0.8, a_wave:850,
+  conc:62, conc_lo:55, conc_hi:68, Q_lo:120, Q_hi:220,
+  t0_mm:10, t_now_mm:8.5, t_limit_mm:5.5, wear_rate:0.12,
+  block_factor:1.0, force_leak:false, vapor_kPa:-80,
+  pump:{enabled:true,at_km:5,head_m:85},
+  valve:{enabled:true,at_km:22,k:2.5e-5},
+  diss_in_km:34, diss_out_km:35.5,
+  segments:[
+    {L:5,z:1210,Di:250,eps:0.05,Do:273,t:10,Sy:360,fd:0.72,ft:1.1,gfac:1},
+    {L:8,z:1185,Di:250,eps:0.05,Do:273,t:10,Sy:360,fd:0.72,ft:1.1,gfac:1.05},
+    {L:10,z:1160,Di:250,eps:0.06,Do:273,t:9.5,Sy:360,fd:0.72,ft:1.1,gfac:1.05},
+    {L:7,z:1145,Di:230,eps:0.06,Do:254,t:9.5,Sy:360,fd:0.72,ft:1.15,gfac:1.08},
+    {L:6,z:1130,Di:230,eps:0.06,Do:254,t:9.5,Sy:360,fd:0.72,ft:1.15,gfac:1.08},
+  ],
+});
+let state=defaultState(), alarmLog=[], lastSig='', acked=new Set();
+
+function frictionFactor(Re,eD){
+  if(Re<1e-9)return 0; if(Re<2300)return 64/Re;
+  const inv=-1.8*Math.log10(Math.pow(eD/3.7,1.11)+6.9/Re); return 1/(inv*inv);
+}
+function waspVc(Di,Cv,Ss,SG,d85){
+  const Dm=Di, rho_m=SG*rhoW, rho_s=Ss*rhoW;
+  const term=Math.max((rho_s-rho_m)/rho_m,1e-6);
+  return 3.113*Math.pow(Math.max(Cv,1e-4),0.1858)*Math.sqrt(2*g*Dm*term)*Math.pow(Math.max(d85/Dm,1e-9),1/6);
+}
+function nearest(pts,km){let b=pts[0],d=1e99;pts.forEach(p=>{const x=Math.abs(p.km-km);if(x<d){d=x;b=p}});return b}
+function levelMax(a,b){const o={ok:0,L1:1,L2:2,L3:3};return o[a]>=o[b]?a:b}
+
+function compute(){
+  const Qs=state.Q/3600, mu=state.mu_cP*1e-3, rho=state.SG*rhoW;
+  const pts=[]; let km=0,z=state.z0,H=state.H_up,cumI=0;
+  const ev=[];
+  if(state.pump.enabled)ev.push({km:state.pump.at_km,type:'pump'});
+  if(state.valve.enabled)ev.push({km:state.valve.at_km,type:'valve'});
+  ev.sort((a,b)=>a.km-b.km);
+  let maxP=0,minP=1e99,slackN=0,overN=0,worst={};
+  const dV=state.deltaV, dPjoule=rho*state.a_wave*Math.abs(dV)/1000; // kPa
+
+  state.segments.forEach((seg,si)=>{
+    const n=Math.max(4,Math.ceil(seg.L*8));
+    const dL=seg.L/n, Di=seg.Di/1000, A=Math.PI*Di*Di/4;
+    const V=A>0?Qs/A:0, Re=(mu>0&&Di>0)?rho*V*Di/mu:0;
+    const f=frictionFactor(Re,Di>0?(seg.eps/1000)/Di:0);
+    const i=seg.gfac*(f/Di)*(V*V)/(2*g)*state.block_factor;
+    const Vc=waspVc(Di,state.Cv,state.Ss,state.SG,state.d85_mm/1000);
+    const Pss_MPa=(2*seg.fd*Math.max(seg.t-state.ca,0)*seg.Sy)/seg.Do;
+    const Pmaop=Math.min(Pss_MPa,state.flange_MPa)*1000;
+    const Ptr=seg.ft*Pmaop;
+    const z0=z,z1=seg.z;
+    for(let k=1;k<=n;k++){
+      const km2=km+dL, z2=z0+(z1-z0)*(k/n);
+      ev.forEach(e=>{if(e.km>km&&e.km<=km2+1e-12){if(e.type==='pump')H+=state.pump.head_m; if(e.type==='valve')H-=state.valve.k*Math.abs(state.Q)*state.Q;}});
+      H=H-i*(dL*1000); cumI+=i*(dL*1000);
+      let slack=false; if(H<z2){H=z2;slack=true;slackN++}
+      const Hss=z2+(Pmaop*1000)/(state.SG*rhoW*g);
+      const Htr=z2+(Ptr*1000)/(state.SG*rhoW*g);
+      const P=state.SG*rhoW*g*(H-z2)/1000;
+      const Pmax=P+dPjoule, Pmin=P-dPjoule;
+      maxP=Math.max(maxP,P); minP=Math.min(minP,P);
+      if(P>Pmaop){overN++; worst.over={km:km2,P,Pmaop}}
+      pts.push({km:km2,z:z2,H,Hss,Htr,P,Pmaop,Ptr,Pmax,Pmin,V,Vc,i,f,Re,cumI,slack,seg:si});
+      km=km2;z=z2;
+    }
+  });
+  if(!pts.length)return null;
+  const end=pts[pts.length-1];
+  // key points
+  const high=pts.reduce((a,b)=>b.z>a.z?b:a,pts[0]);
+  const pumpP=state.pump.enabled?nearest(pts,state.pump.at_km):pts[0];
+  const din=nearest(pts,state.diss_in_km), dout=nearest(pts,Math.min(state.diss_out_km,end.km));
+  const keyPts=[
+    {name:'隔膜泵后',km:pumpP.km,P:pumpP.P,hist:[pumpP.P*0.85,pumpP.P*1.05]},
+    {name:'线路最高点',km:high.km,P:high.P,hist:[high.P*0.7,high.P*1.15]},
+    {name:'消能站进站',km:din.km,P:din.P,hist:[din.P*0.8,din.P*1.1]},
+    {name:'消能站出站',km:dout.km,P:dout.P,hist:[dout.P*0.75,dout.P*1.05]},
+  ];
+
+  // slack energy residual on last downhill-ish span
+  const mid=pts[Math.floor(pts.length*0.65)];
+  const energyLeft=(state.H_up)-(end.H);
+  const impactHead=Math.max(0, mid.H-mid.z - 5); // teaching residual
+
+  const dq=Math.abs(state.Q-state.Q_out)/Math.max(state.Q,1e-6);
+  const leakFrac=state.force_leak?0.06:dq;
+  const iExp=pts.reduce((s,p)=>s+p.i,0)/pts.length;
+  const iObs=iExp*state.block_factor;
+  const ratio=state.block_factor;
+  const wearEta=(state.t0_mm-state.t_now_mm)/Math.max(state.t0_mm,1e-6);
+  const Vavg=pts.reduce((s,p)=>s+p.V,0)/pts.length;
+  const Vcavg=pts.reduce((s,p)=>s+p.Vc,0)/pts.length;
+  const Vratio=Vavg/Math.max(Vcavg,1e-6);
+  const Pwork=pts.reduce((s,p)=>s+p.P,0)/pts.length;
+  const Pinst=Pwork+dPjoule;
+  const PmaopAvg=pts.reduce((s,p)=>s+p.Pmaop,0)/pts.length;
+  const alarmLimit=PmaopAvg;
+  const PmaxLine=Math.max(...pts.map(p=>p.Pmax));
+  const PminLine=Math.min(...pts.map(p=>p.Pmin));
+
+  const alarms=buildAlarms({leakFrac,ratio,wearEta,maxP,alarmLimit,Vratio,Pinst,Pwork,PminLine,impactHead,slackN,din,dout,end,high});
+
+  return {pts,end,keyPts,alarms,maxP,minP,slackN,overN,dPjoule,Vavg,Vcavg,Vratio,leakFrac,ratio,wearEta,PmaopAvg,energyLeft,mid,high,din,dout,pumpP};
+}
+
+function buildAlarms(x){
+  const rows=[];
+  // leak
+  let lv='ok'; if(x.leakFrac>=0.05)lv='L3'; else if(x.leakFrac>=0.01)lv='L2'; else if(x.leakFrac>0.003)lv='L1';
+  rows.push({key:'ROLE_ALARM_LEAK',cat:'泄漏 9.6.1',level:lv,
+    rule:'δQ≤1%蓝；1–5%橙；≥5%红',
+    obs:`δQ=${(x.leakFrac*100).toFixed(2)}%`,
+    act:lv==='L3'?'全线紧急停机切断泄压':lv==='L2'?'紧急停泵关截断阀':lv==='L1'?'确认信号、降压巡检':'—'});
+  // block
+  lv='ok'; if(x.ratio>2)lv='L3'; else if(x.ratio>1.6)lv='L2'; else if(x.ratio>1.3)lv='L1';
+  rows.push({key:'ROLE_ALARM_BLOCK',cat:'堵塞 9.6.2',level:lv,
+    rule:'ratio>1.3/1.6/2.0',
+    obs:`ratio=${x.ratio.toFixed(2)}`,
+    act:lv==='L3'?'停机隔离清堵':lv==='L2'?'关阀反冲洗/清管':lv==='L1'?'降频循环敲击冲洗':'—'});
+  // wear
+  lv='ok'; if(state.t_now_mm<=state.t_limit_mm)lv='L3'; else if(x.wearEta>=0.5)lv='L2'; else if(x.wearEta>=0.2)lv='L1';
+  rows.push({key:'ROLE_ALARM_WEAR',cat:'磨蚀 9.6.3',level:lv,
+    rule:'减薄20%/50%/极限壁厚',
+    obs:`减薄${(x.wearEta*100).toFixed(1)}%，t=${state.t_now_mm}mm`,
+    act:lv==='ok'?'—':'挂牌监视/检修计划/更换'});
+  // overpress
+  const rP=x.maxP/Math.max(x.alarmLimit,1e-6);
+  lv='ok'; if(rP>=1)lv='L3'; else if(rP>=0.8)lv='L2'; else if(rP>=0.6)lv='L1';
+  rows.push({key:'ROLE_ALARM_OVERPRESS',cat:'超压 9.6.4',level:lv,
+    rule:'达警戒60%/80%/100%',
+    obs:`maxP=${x.maxP.toFixed(0)} / 警戒${x.alarmLimit.toFixed(0)} kPa (${(rP*100).toFixed(0)}%)`,
+    act:lv==='L3'?'紧急降压/停泵':lv==='L2'?'降频开阀泄荷':lv==='L1'?'分析来压原因':'—'});
+  // settle
+  lv='ok'; if(x.Vratio<0.9)lv='L3'; else if(x.Vratio<1.0)lv='L2'; else if(x.Vratio<1.1)lv='L1';
+  rows.push({key:'ROLE_ALARM_SETTLE',cat:'低流速沉降 9.6.4',level:lv,
+    rule:'V<1.1/1.0/0.9 Vc',
+    obs:`V̄/Vc̄=${x.Vratio.toFixed(3)}`,
+    act:lv==='ok'?'—':'提频/分流/冲刷'});
+
+  // waterhammer +
+  const rWh=x.Pinst/Math.max(x.Pwork,1e-6);
+  const rWhAlarm=x.Pinst/Math.max(x.alarmLimit,1e-6);
+  lv='ok'; if(x.Pinst>=x.alarmLimit)lv='L3'; else if(rWh>=1.5||rWhAlarm>=0.8)lv='L2'; else if(rWh>=1.1)lv='L1';
+  rows.push({key:'ROLE_ALARM_WH_POS',cat:'水击超压 9.6.5',level:lv,
+    rule:'>1.1稳态；>1.5稳态或达警戒80%；触及警戒',
+    obs:`Pinst≈${x.Pinst.toFixed(0)}，Pwork≈${x.Pwork.toFixed(0)} kPa`,
+    act:lv==='L3'?'ESD停泵缓关泄压':lv==='L2'?'禁止快操作、备泄压':lv==='L1'?'查启停阀操作':'—'});
+  // waterhammer -
+  lv='ok'; if(x.PminLine<=state.vapor_kPa)lv='L3'; else if(x.PminLine<=state.vapor_kPa*0.8)lv='L2'; else if(x.PminLine<0)lv='L1';
+  rows.push({key:'ROLE_ALARM_WH_NEG',cat:'水击负压 9.6.5',level:lv,
+    rule:'负压/达汽化80%/达汽化',
+    obs:`Pmin≈${x.PminLine.toFixed(0)}，汽化阈=${state.vapor_kPa} kPa`,
+    act:lv==='ok'?'—':'开进气阀/限流排气'});
+  // accelerate
+  const thr=40; // m impact threshold teaching
+  const rA=x.impactHead/thr;
+  lv='ok'; if(x.slackN>0||rA>=1)lv='L3'; else if(rA>=0.8)lv='L2'; else if(rA>=0.6)lv='L1';
+  rows.push({key:'ROLE_ALARM_SLACK',cat:'加速流 9.6.6',level:lv,
+    rule:'冲击水头达阈值60%/80%/100%或高点负压',
+    obs:`冲击水头示意=${x.impactHead.toFixed(1)} m，松弛步=${x.slackN}`,
+    act:lv==='ok'?'—':'调孔板/开进气阀'});
+  // diss conc/flow
+  lv='ok';
+  if(state.conc<state.conc_lo||state.conc>state.conc_hi||state.Q<state.Q_lo||state.Q>state.Q_hi)lv='L2';
+  rows.push({key:'ROLE_ALARM_DISS_CQ',cat:'消能站浓度/流量',level:lv,
+    rule:'不在设计范围→橙',
+    obs:`C=${state.conc}% [${state.conc_lo},${state.conc_hi}]；Q=${state.Q}`,
+    act:lv==='L2'?'调上游工况':'—'});
+  // diss pressure
+  lv='ok';
+  if(x.din.P>x.alarmLimit*0.9||x.dout.P>x.alarmLimit*0.5)lv='L2';
+  rows.push({key:'ROLE_ALARM_DISS_P',cat:'消能站进出站压',level:lv,
+    rule:'站前/站后超阈→橙',
+    obs:`进=${x.din.P.toFixed(0)} 出=${x.dout.P.toFixed(0)} kPa`,
+    act:lv==='L2'?'增加孔板投入':'—'});
+  // intelligent warning 9.7
+  let risk='ok', conf=0.4, tip='工况平稳';
+  if(x.Vratio<1.15&&x.ratio>1.15){risk='L2';conf=0.72;tip='堵管早期征兆（流速偏低+梯度抬升）'}
+  else if(x.leakFrac>0.004&&x.leakFrac<0.01){risk='L1';conf=0.65;tip='泄漏微小持续性偏差'}
+  else if(x.Vratio<1.2){risk='L1';conf=0.58;tip='沉降风险接近临界'}
+  rows.push({key:'ROLE_WARN_AI',cat:'智能预警 9.7.1',level:risk,
+    rule:'事前模式偏离→低/中/高风险',
+    obs:`风险示意=${risk}，置信度≈${(conf*100).toFixed(0)}%`,
+    act:tip});
+
+  return {rows, worst: rows.reduce((m,r)=>levelMax(m,r.level),'ok')};
+}
+
+// drawing
+function prepare(canvas){
+  const rect=canvas.getBoundingClientRect();
+  const dpr=window.devicePixelRatio||1;
+  let cssW=rect.width||canvas.clientWidth||1100;
+  let cssH=rect.height||canvas.clientHeight||270;
+  if(cssW<2)cssW=1100; if(cssH<2)cssH=270;
+  const W=Math.round(cssW*dpr), H=Math.round(cssH*dpr);
+  canvas.width=W; canvas.height=H;
+  const ctx=canvas.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  return {ctx,W:cssW,Hgt:cssH};
+}
+function axes(ctx,W,Hgt,xmin,xmax,ymin,ymax,xl,yl){
+  const pad={l:58,r:18,t:22,b:40};
+  const X=x=>pad.l+(x-xmin)/(xmax-xmin||1)*(W-pad.l-pad.r);
+  const Y=y=>pad.t+(ymax-y)/(ymax-ymin||1)*(Hgt-pad.t-pad.b);
+  ctx.clearRect(0,0,W,Hgt);
+  ctx.strokeStyle='#e8edf2';ctx.lineWidth=1;
+  for(let i=0;i<=5;i++){const y=pad.t+i*(Hgt-pad.t-pad.b)/5;ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(W-pad.r,y);ctx.stroke()}
+  ctx.fillStyle='#334155';ctx.font='11px sans-serif';
+  ctx.fillText(xl,W/2-16,Hgt-10);
+  ctx.fillText(ymin.toFixed(0),6,Y(ymin)+3);ctx.fillText(ymax.toFixed(0),6,Y(ymax)+3);
+  return {pad,X,Y};
+}
+function poly(ctx,pts,key,color,w,X,Y){
+  ctx.beginPath();let s=false;
+  pts.forEach(p=>{const v=p[key];if(v==null||Number.isNaN(v))return; if(!s){ctx.moveTo(X(p.km),Y(v));s=true}else ctx.lineTo(X(p.km),Y(v))});
+  ctx.strokeStyle=color;ctx.lineWidth=w;ctx.stroke();
+}
+function mark(ctx,km,label,color,X,pad,Hgt,xmin,xmax){
+  if(km<xmin||km>xmax)return;
+  ctx.strokeStyle=color;ctx.setLineDash([4,3]);ctx.beginPath();ctx.moveTo(X(km),pad.t);ctx.lineTo(X(km),Hgt-pad.b);ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle=color;ctx.font='11px sans-serif';ctx.fillText(label,X(km)+3,pad.t+12);
+}
+
+function drawAll(R){
+  // HGL
+  let c=document.getElementById('cHgl'); let {ctx,W,Hgt}=prepare(c); let pts=R.pts;
+  let xs=pts.map(p=>p.km), ys=pts.flatMap(p=>[p.z,p.H,p.Hss,p.Htr].filter(v=>v!=null));
+  let xmin=Math.min(...xs),xmax=Math.max(...xs),ymin=Math.min(...ys),ymax=Math.max(...ys);
+  let padY=(ymax-ymin)*0.08||10; ymin-=padY;ymax+=padY;
+  let ax=axes(ctx,W,Hgt,xmin,xmax,ymin,ymax,'里程 km','masl');
+  poly(ctx,pts,'z','#78716c',2,ax.X,ax.Y); poly(ctx,pts,'Hss','#ca8a04',1.6,ax.X,ax.Y); poly(ctx,pts,'Htr','#dc2626',1.4,ax.X,ax.Y); poly(ctx,pts,'H','#2563eb',2.4,ax.X,ax.Y);
+  if(state.pump.enabled)mark(ctx,state.pump.at_km,'泵站','#b91c1c',ax.X,ax.pad,Hgt,xmin,xmax);
+  if(state.valve.enabled)mark(ctx,state.valve.at_km,'阀站','#7c3aed',ax.X,ax.pad,Hgt,xmin,xmax);
+
+  // Press
+  c=document.getElementById('cPress'); ({ctx,W,Hgt}=prepare(c));
+  ys=pts.flatMap(p=>[0,p.P,p.Pmaop,p.Ptr]); ymin=Math.min(...ys); ymax=Math.max(...ys); padY=(ymax-ymin)*0.08||40; ymin-=padY*0.15;ymax+=padY;
+  ax=axes(ctx,W,Hgt,xmin,xmax,ymin,ymax,'里程 km','kPa');
+  ctx.strokeStyle='#94a3b8';ctx.beginPath();ctx.moveTo(ax.X(xmin),ax.Y(0));ctx.lineTo(ax.X(xmax),ax.Y(0));ctx.stroke();
+  poly(ctx,pts,'Pmaop','#ca8a04',1.6,ax.X,ax.Y); poly(ctx,pts,'Ptr','#dc2626',1.3,ax.X,ax.Y); poly(ctx,pts,'P','#0d9488',2.4,ax.X,ax.Y);
+  if(state.pump.enabled)mark(ctx,state.pump.at_km,'泵站','#b91c1c',ax.X,ax.pad,Hgt,xmin,xmax);
+
+  // Vel
+  c=document.getElementById('cVel'); ({ctx,W,Hgt}=prepare(c));
+  ys=pts.flatMap(p=>[p.V,p.Vc,p.Vc*1.1,p.Vc*0.9]); ymin=0; ymax=Math.max(...ys)*1.15||2;
+  ax=axes(ctx,W,Hgt,xmin,xmax,ymin,ymax,'里程 km','m/s');
+  // thresholds as stepped from Vc
+  poly(ctx,pts.map(p=>({km:p.km,v:p.Vc*1.1})),'v','#ca8a04',1.3,ax.X,ax.Y);
+  poly(ctx,pts.map(p=>({km:p.km,v:p.Vc})),'v','#7c3aed',1.6,ax.X,ax.Y);
+  poly(ctx,pts.map(p=>({km:p.km,v:p.Vc*1.0})),'v','#ea580c',1,ax.X,ax.Y);
+  poly(ctx,pts.map(p=>({km:p.km,v:p.Vc*0.9})),'v','#b91c1c',1,ax.X,ax.Y);
+  poly(ctx,pts,'V','#2563eb',2.4,ax.X,ax.Y);
+
+  // Transient
+  c=document.getElementById('cTr'); ({ctx,W,Hgt}=prepare(c));
+  ys=pts.flatMap(p=>[p.P,p.Pmax,p.Pmin,p.Pmaop,0]); ymin=Math.min(...ys); ymax=Math.max(...ys); padY=(ymax-ymin)*0.1||50; ymin-=padY*0.1;ymax+=padY;
+  ax=axes(ctx,W,Hgt,xmin,xmax,ymin,ymax,'里程 km','kPa');
+  poly(ctx,pts,'Pmaop','#ca8a04',1.5,ax.X,ax.Y);
+  poly(ctx,pts,'Pmax','#dc2626',2,ax.X,ax.Y);
+  poly(ctx,pts,'Pmin','#0284c7',2,ax.X,ax.Y);
+  poly(ctx,pts,'P','#0d9488',1.8,ax.X,ax.Y);
+  ctx.fillStyle='#dc2626'; pts.forEach(p=>{if(p.Pmax>p.Pmaop){ctx.beginPath();ctx.arc(ax.X(p.km),ax.Y(p.Pmax),3,0,7);ctx.fill()}});
+  ctx.fillStyle='#0284c7'; pts.forEach(p=>{if(p.Pmin<0){ctx.beginPath();ctx.arc(ax.X(p.km),ax.Y(p.Pmin),3,0,7);ctx.fill()}});
+
+  // model svg
+  const svg=document.getElementById('modelSvg');
+  const Wsvg=1100,Hsvg=160, pl=40,pr=20,pt=20,pb=30;
+  const X=k=>pl+(k-xmin)/(xmax-xmin||1)*(Wsvg-pl-pr);
+  const Yz=z=>pt+(ymaxZ-z)/(ymaxZ-yminZ||1)*(Hsvg-pt-pb);
+  const zs=pts.map(p=>p.z); let yminZ=Math.min(...zs), ymaxZ=Math.max(...zs); const pz=(ymaxZ-yminZ)*0.15||20; yminZ-=pz;ymaxZ+=pz;
+  let path=pts.map((p,i)=>(i?'L':'M')+X(p.km).toFixed(1)+','+Yz(p.z).toFixed(1)).join(' ');
+  const alarmsMark=R.alarms.rows.filter(r=>r.level!=='ok');
+  let marks='';
+  alarmsMark.forEach((a,i)=>{
+    const km=a.key.includes('LEAK')?R.end.km*0.45: a.key.includes('BLOCK')?R.end.km*0.55: a.key.includes('SLACK')?R.high.km: a.key.includes('DISS')?R.din.km: R.end.km*0.3;
+    const col=a.level==='L3'?'#b91c1c':a.level==='L2'?'#ea580c':'#2563eb';
+    marks+=`<circle class="flash" cx="${X(km)}" cy="${Yz(nearest(pts,km).z)-12}" r="7" fill="${col}"/><text x="${X(km)+8}" y="${Yz(nearest(pts,km).z)-14}" font-size="11" fill="${col}">${a.cat.split(' ')[0]}</text>`;
+  });
+  svg.innerHTML=`<polyline fill="none" stroke="#78716c" stroke-width="3" points="${pts.map(p=>X(p.km)+','+Yz(p.z)).join(' ')}"/>
+    <path d="${path}" fill="none"/>
+    ${state.pump.enabled?`<line x1="${X(state.pump.at_km)}" y1="${pt}" x2="${X(state.pump.at_km)}" y2="${Hsvg-pb}" stroke="#b91c1c" stroke-dasharray="4"/><text x="${X(state.pump.at_km)+4}" y="${pt+12}" fill="#b91c1c" font-size="11">泵站</text>`:''}
+    ${marks}
+    <text x="${Wsvg/2}" y="${Hsvg-8}" font-size="11" fill="#64748b">里程 km（纵断面替代模型）</text>`;
+  document.getElementById('kpiModel').innerHTML=`<div>报警标注 <b>${alarmsMark.length}</b> 处</div><div>最高点 <b>${R.high.km.toFixed(2)}</b> km / <b>${R.high.z.toFixed(0)}</b> masl</div>`;
+
+  // key points history bands
+  c=document.getElementById('cPts'); ({ctx,W,Hgt}=prepare(c));
+  const colors=['#2563eb','#16a34a','#ea580c','#7c3aed'];
+  ax=axes(ctx,W,Hgt,0,3.5,0,Math.max(...R.keyPts.map(k=>k.hist[1]))*1.2,'测点索引','kPa');
+  R.keyPts.forEach((k,i)=>{
+    const x0=ax.X(i+0.2), x1=ax.X(i+0.8);
+    ctx.fillStyle=colors[i]+'33';
+    ctx.fillRect(x0,ax.Y(k.hist[1]),x1-x0,ax.Y(k.hist[0])-ax.Y(k.hist[1]));
+    ctx.fillStyle=colors[i];
+    ctx.beginPath();ctx.arc(ax.X(i+0.5),ax.Y(k.P),6,0,7);ctx.fill();
+    ctx.fillStyle='#334155';ctx.font='11px sans-serif';
+    ctx.fillText(k.name,ax.X(i+0.15),Hgt-12);
+    ctx.fillText(k.P.toFixed(0),ax.X(i+0.35),ax.Y(k.P)-8);
+  });
+
+  // table subsample
+  const tb=document.querySelector('#calcTable tbody');
+  const step=Math.max(1,Math.floor(pts.length/40));
+  let html='';
+  for(let i=0;i<pts.length;i+=step){const p=pts[i];
+    html+=`<tr><td>${p.km.toFixed(2)}</td><td>${p.z.toFixed(1)}</td><td>${p.H.toFixed(1)}</td><td>${p.P.toFixed(0)}</td><td>${p.Pmax.toFixed(0)}</td><td>${p.Pmin.toFixed(0)}</td><td>${p.V.toFixed(3)}</td><td>${p.Vc.toFixed(3)}</td><td>${p.i.toExponential(2)}</td><td>${p.cumI.toFixed(1)}</td></tr>`;
+  }
+  tb.innerHTML=html;
+
+  // wear / predict
+  c=document.getElementById('cWear'); ({ctx,W,Hgt}=prepare(c));
+  const years=[0,1,2,3,4,5,6,7,8];
+  const hist=years.map(y=>({x:y,y:state.t0_mm-state.wear_rate*y*2})); // past denser loss teaching
+  const pred=years.map(y=>({x:y+8,y:state.t_now_mm-state.wear_rate*y}));
+  ymin=Math.min(state.t_limit_mm-0.5,...hist.map(p=>p.y),...pred.map(p=>p.y));
+  ymax=Math.max(state.t0_mm,...hist.map(p=>p.y))+0.5;
+  ax=axes(ctx,W,Hgt,0,16,ymin,ymax,'年','壁厚 mm');
+  ctx.strokeStyle='#b91c1c';ctx.setLineDash([5,4]);ctx.beginPath();ctx.moveTo(ax.X(0),ax.Y(state.t_limit_mm));ctx.lineTo(ax.X(16),ax.Y(state.t_limit_mm));ctx.stroke();ctx.setLineDash([]);
+  ctx.beginPath();hist.forEach((p,i)=>{if(!i)ctx.moveTo(ax.X(p.x),ax.Y(p.y));else ctx.lineTo(ax.X(p.x),ax.Y(p.y))});ctx.strokeStyle='#0d9488';ctx.lineWidth=2.2;ctx.stroke();
+  ctx.beginPath();pred.forEach((p,i)=>{if(!i)ctx.moveTo(ax.X(p.x),ax.Y(p.y));else ctx.lineTo(ax.X(p.x),ax.Y(p.y))});ctx.strokeStyle='#2563eb';ctx.lineWidth=2.2;ctx.stroke();
+  const life=(state.t_now_mm-state.t_limit_mm)/Math.max(state.wear_rate,1e-6);
+  document.getElementById('kpiWear').innerHTML=`<div>当前壁厚 <b>${state.t_now_mm}</b> mm</div><div>极限 <b>${state.t_limit_mm}</b> mm</div><div>速率 <b>${state.wear_rate}</b> mm/年</div><div>剩余寿命示意 <b>${Math.max(life,0).toFixed(1)}</b> 年</div>`;
+
+  document.getElementById('kpiMain').innerHTML=`
+    <div>管长 <b>${R.end.km.toFixed(2)}</b> km</div>
+    <div>终点P <b>${R.end.P.toFixed(0)}</b> kPa</div>
+    <div>maxP <b>${R.maxP.toFixed(0)}</b> kPa</div>
+    <div>V̄/Vc̄ <b>${R.Vratio.toFixed(2)}</b></div>
+    <div>ΔP水击 <b>${R.dPjoule.toFixed(0)}</b> kPa</div>
+    <div>泄漏δQ <b>${(R.leakFrac*100).toFixed(2)}</b>%</div>`;
+}
+
+function badge(lv){return lv==='ok'?'<span class="badge ok">正常</span>':lv==='L1'?'<span class="badge L1">蓝·一级</span>':lv==='L2'?'<span class="badge L2">橙·二级</span>':'<span class="badge L3">红·三级</span>'}
+
+function renderAlarms(R){
+  const rows=R.alarms.rows;
+  document.getElementById('alarmStatus').innerHTML=rows.map(r=>`
+    <div class="status-card ${r.level}">
+      <div class="t">${r.cat}</div>
+      <div class="v">${badge(r.level)} ${r.obs}</div>
+    </div>`).join('');
+  document.querySelector('#alarmTable tbody').innerHTML=rows.map(r=>`
+    <tr><td><code>${r.key}</code></td><td>${r.cat}</td><td>${badge(r.level)}</td><td>${r.rule}</td><td>${r.obs}</td><td>${r.act}</td></tr>`).join('');
+  const sig=rows.map(r=>r.key+':'+r.level).join('|');
+  if(sig!==lastSig){
+    const ts=new Date().toLocaleTimeString();
+    rows.filter(r=>r.level!=='ok'&&!acked.has(r.key+r.level)).forEach(r=>{
+      alarmLog.unshift({ts,cls:r.level,text:`[${r.level}] ${r.cat} — ${r.obs} | ${r.act}`});
+    });
+    if(rows.every(r=>r.level==='ok')) alarmLog.unshift({ts,cls:'ok',text:'[恢复] 全部通道正常'});
+    lastSig=sig; if(alarmLog.length>100)alarmLog.length=100;
+  }
+  const el=document.getElementById('alarmLog');
+  el.innerHTML=alarmLog.length?alarmLog.map(e=>`<div class="${e.cls}">${e.ts} ${e.text}</div>`).join(''):'<div class="info">尚无事件</div>';
+}
+
+function renderMap(R){
+  const rows=[
+    ['ROLE_MAINLINE_FLOW','干线流量','m³/h',state.Q,'流速/HGL'],
+    ['ROLE_DOWNSTREAM_FLOW','下游测流','m³/h',state.Q_out,'泄漏'],
+    ['ROLE_FLUID_SG','比重','—',state.SG,'P↔H'],
+    ['ROLE_SOLID_SS','固体比重','—',state.Ss,'Vc'],
+    ['ROLE_CV','体积浓度','—',state.Cv,'Vc'],
+    ['ROLE_D85','d85','mm',state.d85_mm,'Vc'],
+    ['ROLE_PUMP_HEAD','泵扬程','m',state.pump.head_m,'HGL'],
+    ['ROLE_BLOCK_FACTOR','堵塞梯度放大','—',state.block_factor,'堵塞报警'],
+    ['ROLE_DELTA_V','关阀ΔV','m/s',state.deltaV,'水击包络'],
+    ['ROLE_WAVE_SPEED','波速 a','m/s',state.a_wave,'水击'],
+    ['ROLE_OUT_HGL','终点HGL','masl',R.end.H.toFixed(1),'坡降线'],
+    ['ROLE_OUT_MAOP','平均MAOP','kPa',R.PmaopAvg.toFixed(0),'承压线'],
+    ['ROLE_OUT_VRATIO','V/Vc','—',R.Vratio.toFixed(3),'沉降'],
+  ];
+  document.querySelector('#mapTable tbody').innerHTML=rows.map(r=>`<tr><td><code>${r[0]}</code></td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td>${r[4]}</td></tr>`).join('');
+}
+
+let lastR=null;
+function refresh(){
+  const R=compute(); if(!R)return;
+  lastR=R; drawAll(R); renderAlarms(R); renderMap(R);
+  if(window.MathJax&&MathJax.typesetPromise) MathJax.typesetPromise().catch(()=>{});
+  return R;
+}
+
+// UI fields
+function field(box,key,label,role,unit,mapKey,step='any'){
+  const w=document.createElement('label'); w.className='field';
+  w.innerHTML=`<span class="name">${label}</span><span class="role">角色：${role} · <code>${mapKey}</code></span><input type="number" step="${step}"/><span class="unit">${unit}</span>`;
+  box.appendChild(w);
+  const inp=w.querySelector('input');
+  const get=()=>{const p=key.split('.');let o=state;for(let i=0;i<p.length-1;i++)o=o[p[i]];return o[p.at(-1)]};
+  const set=v=>{const p=key.split('.');let o=state;for(let i=0;i<p.length-1;i++)o=o[p[i]];o[p.at(-1)]=v};
+  inp.value=get();
+  inp.addEventListener('input',()=>{set(parseFloat(inp.value));refresh()});
+}
+function boolField(box,key,label,role,mapKey){
+  const w=document.createElement('label'); w.className='field';
+  w.innerHTML=`<span class="name">${label}</span><span class="role">角色：${role} · <code>${mapKey}</code></span><select><option value="1">是</option><option value="0">否</option></select><span class="unit"></span>`;
+  box.appendChild(w);
+  const sel=w.querySelector('select');
+  const get=()=>{const p=key.split('.');let o=state;for(let i=0;i<p.length-1;i++)o=o[p[i]];return o[p.at(-1)]};
+  const set=v=>{const p=key.split('.');let o=state;for(let i=0;i<p.length-1;i++)o=o[p[i]];o[p.at(-1)]=v};
+  sel.value=get()?'1':'0';
+  sel.onchange=e=>{set(e.target.value==='1');refresh()};
+}
+function buildGlobals(){
+  const el=document.getElementById('globals'); el.innerHTML='';
+  field(el,'Q','上游流量 Q','干线流量','m³/h','ROLE_MAINLINE_FLOW','1');
+  field(el,'Q_out','下游测流 Q_out','泄漏平衡','m³/h','ROLE_DOWNSTREAM_FLOW','1');
+  field(el,'SG','浆体比重 SG','混合物比重','—','ROLE_FLUID_SG','0.01');
+  field(el,'mu_cP','粘度 μ','动力粘度','cP','ROLE_VISC','0.1');
+  field(el,'H_up','上游水头','边界水头','masl','ROLE_UPSTREAM_HEAD','0.1');
+  field(el,'z0','起点高程','纵断起点','masl','ROLE_Z0','0.1');
+  field(el,'Cv','体积浓度 Cv','临界流速','—','ROLE_CV','0.01');
+  field(el,'Ss','固体真比重 Ss','临界流速','—','ROLE_SOLID_SS','0.01');
+  field(el,'d85_mm','d85','Wasp粒径','mm','ROLE_D85','0.01');
+  field(el,'ca','腐蚀裕量','许用','mm','ROLE_CA','0.1');
+}
+function buildEquip(){
+  const el=document.getElementById('equipment'); el.innerHTML='';
+  boolField(el,'pump.enabled','启用泵站','泵站','ROLE_PUMP_EN');
+  field(el,'pump.at_km','泵站里程','泵站','km','ROLE_PUMP_KM','0.1');
+  field(el,'pump.head_m','泵扬程','工况扬程','m','ROLE_PUMP_HEAD','0.5');
+  boolField(el,'valve.enabled','启用阀站','阀','ROLE_VALVE_EN');
+  field(el,'valve.at_km','阀站里程','阀','km','ROLE_VALVE_KM','0.1');
+  field(el,'valve.k','阀阻力 k','局部阻','—','ROLE_VALVE_K','1e-7');
+  field(el,'block_factor','堵塞梯度放大 ratio','堵塞监测','—','ROLE_BLOCK_FACTOR','0.05');
+  field(el,'deltaV','关阀流速突变 ΔV','水击','m/s','ROLE_DELTA_V','0.05');
+  field(el,'a_wave','压力波速 a','水击','m/s','ROLE_WAVE_SPEED','10');
+  field(el,'flange_MPa','法兰许用','MAOP约束','MPa','ROLE_FLANGE','0.1');
+  field(el,'vapor_kPa','汽化临界负压','水击负压','kPa','ROLE_VAPOR','1');
+  field(el,'conc','消能站浓度','消能监测','%','ROLE_CONC','0.5');
+  field(el,'conc_lo','浓度下限','设计范围','%','ROLE_CONC_LO','0.5');
+  field(el,'conc_hi','浓度上限','设计范围','%','ROLE_CONC_HI','0.5');
+  field(el,'Q_lo','流量设计下限','消能','m³/h','ROLE_Q_LO','1');
+  field(el,'Q_hi','流量设计上限','消能','m³/h','ROLE_Q_HI','1');
+  field(el,'t0_mm','原始壁厚','磨蚀','mm','ROLE_T0','0.1');
+  field(el,'t_now_mm','当前壁厚','磨蚀','mm','ROLE_TNOW','0.1');
+  field(el,'t_limit_mm','极限壁厚','磨蚀','mm','ROLE_TLIM','0.1');
+  field(el,'wear_rate','磨蚀速率','磨蚀','mm/年','ROLE_WEAR_RATE','0.01');
+  field(el,'diss_in_km','消能进站里程','测点','km','ROLE_DISS_IN','0.1');
+  field(el,'diss_out_km','消能出站里程','测点','km','ROLE_DISS_OUT','0.1');
+}
+function renderSeg(){
+  const tb=document.querySelector('#segTable tbody'); tb.innerHTML='';
+  state.segments.forEach((seg,idx)=>{
+    const keys=['L','z','Di','eps','Do','t','Sy','fd','ft','gfac'];
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${idx+1}</td>`+keys.map(k=>`<td><input data-i="${idx}" data-k="${k}" type="number" step="any" value="${seg[k]}"/></td>`).join('')+`<td><button type="button" class="secondary" data-del="${idx}">删</button></td>`;
+    tb.appendChild(tr);
+  });
+  tb.querySelectorAll('input').forEach(inp=>inp.addEventListener('input',()=>{state.segments[+inp.dataset.i][inp.dataset.k]=parseFloat(inp.value);refresh()}));
+  tb.querySelectorAll('[data-del]').forEach(btn=>btn.onclick=()=>{if(state.segments.length<=1)return;state.segments.splice(+btn.dataset.del,1);renderSeg();refresh()});
+}
+
+document.querySelectorAll('#chartTabs button').forEach(btn=>{
+  btn.onclick=()=>{
+    document.querySelectorAll('#chartTabs button').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('#sec-charts .panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active'); document.getElementById(btn.dataset.panel).classList.add('active');
+    requestAnimationFrame(()=>{if(lastR)drawAll(lastR)});
+  };
+});
+document.getElementById('btnRecalc').onclick=()=>refresh();
+document.getElementById('btnReset').onclick=()=>{state=defaultState();acked=new Set();lastSig='';buildGlobals();buildEquip();renderSeg();refresh()};
+document.getElementById('btnClearLog').onclick=()=>{alarmLog=[];document.getElementById('alarmLog').innerHTML='<div class="info">已清空</div>'};
+document.getElementById('btnAck').onclick=()=>{
+  if(!lastR)return;
+  lastR.alarms.rows.filter(r=>r.level==='L3'||r.level==='L2').forEach(r=>acked.add(r.key+r.level));
+  alarmLog.unshift({ts:new Date().toLocaleTimeString(),cls:'ok',text:'[确认] 已确认当前橙/红报警（示意）'});
+  renderAlarms(lastR);
+};
+document.getElementById('btnSimLeak').onclick=()=>{state.force_leak=true;refresh();setTimeout(()=>{state.force_leak=false;refresh()},900)};
+document.getElementById('btnAddSeg').onclick=()=>{const last=state.segments.at(-1);state.segments.push({...last,L:5,z:last.z-8});renderSeg();refresh()};
+document.getElementById('btnDemo').onclick=()=>{
+  state.z0=1250;state.H_up=1330;
+  state.segments=[
+    {L:4,z:1265,Di:260,eps:0.045,Do:286,t:11,Sy:415,fd:0.72,ft:1.1,gfac:1},
+    {L:6,z:1240,Di:260,eps:0.045,Do:286,t:11,Sy:415,fd:0.72,ft:1.1,gfac:1.05},
+    {L:9,z:1195,Di:250,eps:0.05,Do:273,t:10,Sy:360,fd:0.72,ft:1.1,gfac:1.05},
+    {L:8,z:1170,Di:250,eps:0.05,Do:273,t:10,Sy:360,fd:0.72,ft:1.15,gfac:1.08},
+    {L:7,z:1155,Di:240,eps:0.055,Do:267,t:10,Sy:360,fd:0.72,ft:1.15,gfac:1.08},
+    {L:5,z:1140,Di:240,eps:0.055,Do:267,t:9.5,Sy:360,fd:0.72,ft:1.15,gfac:1.1},
+  ];
+  state.pump.at_km=4; state.valve.at_km=19; state.diss_in_km=36; state.diss_out_km=37.5;
+  buildGlobals();buildEquip();renderSeg();refresh();
+};
+
+buildGlobals();buildEquip();renderSeg();refresh();
+})();
+</script>
+</body>
+</html>
